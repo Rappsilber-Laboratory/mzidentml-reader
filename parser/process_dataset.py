@@ -64,7 +64,14 @@ def parse_arguments():
                        help='Output JSON with sequences and residue pairs,'
                             'if argument is directory all MzIdentmL files in it will be read. '
                             'If --temp option is given then the temp folder will be used for the sqlite DB file, '
-                            'otherwise an in-memory sqlite DB will be used. '
+                            'otherwise an in-memory sqlite DB will be used. ',
+                       type=str
+                       )
+
+    parser.add_argument('-j', '--json',
+                       help='JSON filename',
+                       type=str,
+                       required=False,
                        )
 
     parser.add_argument('-i', '--identifier',
@@ -259,7 +266,9 @@ def main():
         elif args.validate:
             validate(args.validate, temp_dir)
         elif args.seqsandresiduepairs:
-            print(json_sequences_and_residue_pairs(args.seqsandresiduepairs, temp_dir))
+            json_data = json_sequences_and_residue_pairs(args.seqsandresiduepairs, temp_dir)
+            with open(args.json, 'w') as f:
+                f.write(json_data.decode('utf-8'))
         sys.exit(0)
     except Exception as ex:
         logger.error(ex)
