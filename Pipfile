@@ -13,13 +13,13 @@ requests = ">=2.31.0"
 urllib3 = ">=1.24.2"
 pytest = "*"
 psycopg2-binary = "*"
-sqlalchemy = "2.0.21"
+sqlalchemy = ">=2.0.38"
 sqlalchemy-utils = "*"
-obonet = "*"
+obonet = "==1.1.0"
 orjson = "*"
 #Security modules
 certifi = ">=2023.7.22"
-python-multipart = ">=0.0.7"
+python-multipart = ">=0.0.18"
 python-jose = ">=3.3.0"
 passlib = "*"
 jose = "*"
@@ -27,4 +27,5 @@ jose = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.10"
+python_version = ">=3.10"
+
