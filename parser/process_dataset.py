@@ -231,6 +231,7 @@ def sequences_and_residue_pairs(filepath, tmpdir):
             GROUP BY pe1.dbsequence_id , dbs1.accession, pos1, pe2.dbsequence_id, dbs2.accession , pos2
             ORDER BY pe1.dbsequence_id , pos1, pe2.dbsequence_id, pos2
             ;""")
+            # note that using pos1 and pos2 in group by won't work in postgres
             start_time = time.time()
             rs = conn.execute(sql)
             elapsed_time = time.time() - start_time
