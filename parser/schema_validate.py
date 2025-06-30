@@ -9,7 +9,6 @@ def schema_validate(xml_file):
     :param xml_file: Path to the mzIdentML file.
     :return: True if the XML is valid, False otherwise.
     """
-
     # Parse the XML file
     with open(xml_file, 'r') as xml:
         xml_doc = etree.parse(xml)
