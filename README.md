@@ -111,8 +111,6 @@ sudo service postgresql restart
 ```
 
 
-
-
 #### Configure the python environment for the file parser
 
 edit the file xi-mzidentml-converter/config/database.ini to point to your postgressql database.
