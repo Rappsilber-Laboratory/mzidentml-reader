@@ -560,9 +560,9 @@ class MzIdParser:
 
             # link site validity check
             if link_site1 is not None and link_site1 < 0:
-                self.logger.error(f'Link site for peptide {pep_id} is negative')
+                raise MzIdParseException(f'Link site for peptide {pep_id} is negative')
             if link_site2 is not None and link_site2 < 0:
-                self.logger.error(f'Link site for peptide {pep_id} is negative')
+                raise MzIdParseException(f'Link site for peptide {pep_id} is negative')
 
             peptide_data = {
                 'id': peptide_index,
