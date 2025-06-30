@@ -429,7 +429,7 @@ def convert_dir(local_dir, project_identifier, writer_method, nopeaklist=False):
                     raise e
             else:
                 print(f'File {file} is schema invalid.')
-                exit()
+                sys.exit(1)
 
 
 
