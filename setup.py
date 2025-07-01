@@ -24,7 +24,7 @@ def get_version(rel_path):
 
 setup(
     name="mzidentml-reader",
-    version="0.4.0",
+    version="0.4.1",
     description="mzidentml-reader uses pyteomics (https://pyteomics.readthedocs.io/en/latest/index.html) to "
                 "parse mzIdentML files (v1.2.0) and extract crosslink information. Results are written to a "
                 "relational database (PostgreSQL or SQLite) using sqlalchemy.",
