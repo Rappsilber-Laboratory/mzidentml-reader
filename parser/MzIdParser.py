@@ -337,7 +337,7 @@ class MzIdParser:
                         'id': mod_index,
                         'upload_id': self.writer.upload_id,
                         'protocol_id': sid_protocol['id'],
-                        'mod_name': mod_name,
+                        'mod_name': str(mod_name),
                         'mass': mass_delta,
                         'residues': ''.join([r for r in mod['residues'] if r != ' ']),
                         'specificity_rules': spec_rule_accessions,
