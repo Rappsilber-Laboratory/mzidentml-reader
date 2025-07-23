@@ -281,50 +281,10 @@ class MzIdParser:
             if 'ModificationParams' in sid_protocol:
                 mod_index = 0
                 for mod in sid_protocol['ModificationParams']['SearchModification']:
-                    # parse specificity rule accessions
-                    specificity_rules = mod.get('SpecificityRules', [])  # second param is default value
-                    spec_rule_accessions = []  # there may be many
-                    for spec_rule in specificity_rules:
-                        spec_rule_accession = cvquery(spec_rule)
-                        if len(spec_rule_accession) != 1:
-                            raise MzIdParseException(
-                                f'Error when parsing SpecificityRules from SearchModification:\n'
-                                f'{json.dumps(mod)}')
-                        spec_rule_accessions.append(list(spec_rule_accession.keys())[0])
-
                     accessions = cvquery(mod)
-                    # other modifications
-                    # name
-                    mod_name = None
-                    mod_accession = None
-                    # find the matching accession for the name cvParam.
-                    for i, acc in enumerate(accessions):
-                        # ToDo: be more strict with the allowed accessions?
-                        match = re.match('(?:MOD|UNIMOD|MS|XLMOD):[0-9]+', acc)
-                        if match:
-                            # not crosslink donor
-                            if match.group() != 'MS:1002509':
-                                mod_accession = acc
-                            # name
-                            # unknown modification
-                            if match.group() == 'MS:1001460':
-                                mod_name = "({0:.2f})".format(mod['massDelta'])
-                            # others
-                            elif match.group() != 'MS:1002509':
-                                # name is the key in mod dict corresponding to the matched accession.
-                                mod_name = accessions[acc]  # list(mod.keys())[i]
-
                     crosslinker_id = cvquery(mod, "MS:1002509")
                     if crosslinker_id is None:
                         crosslinker_id = cvquery(mod, "MS:1002510")
-                        if crosslinker_id is not None:
-                            mod_name = 'crosslink acceptor'
-
-                    if mod_name is None or mod_accession is None:
-                        raise MzIdParseException(
-                            f'Error parsing <SearchModification>s! '
-                            f'Could not parse name/accession of modification:\n{json.dumps(mod)}')
-
                     if crosslinker_id:  # it's a string but don't want to convert null to word 'None'
                         crosslinker_id = str(crosslinker_id)
 
@@ -337,12 +297,10 @@ class MzIdParser:
                         'id': mod_index,
                         'upload_id': self.writer.upload_id,
                         'protocol_id': sid_protocol['id'],
-                        'mod_name': str(mod_name),
                         'mass': mass_delta,
                         'residues': ''.join([r for r in mod['residues'] if r != ' ']),
-                        'specificity_rules': spec_rule_accessions,
                         'fixed_mod': mod['fixedMod'],
-                        'accession': mod_accession,
+                        'accessions': str(accessions),
                         'crosslinker_id': crosslinker_id
                     })
                     mod_index += 1
@@ -371,8 +329,7 @@ class MzIdParser:
                         enzyme_accession = enzyme_name_cv.accession
                         # if the site_regexp was missing look it up using obo
                         if site_regexp is None:
-                            for child, parent, key in self.ms_obo.out_edges(enzyme_accession,
-                                                                            keys=True):
+                            for child, parent, key in self.ms_obo.out_edges(enzyme_accession, keys=True):
                                 if key == 'has_regexp':
                                     site_regexp = self.ms_obo.nodes[parent]['name']
                     # fallback if no EnzymeName
@@ -531,9 +488,10 @@ class MzIdParser:
                             # no crosslinker modifications
                             cvs = cvquery(mod)
                             mod_pos.append(mod['location'])
-                            mod_accessions.append(cvs)  # unit of fragment loss is always daltons
+                            # mod_accessions.append(cvs)  # unit of fragment loss is always daltons
                             mod_avg_masses.append(mod.get('avgMassDelta', None))
                             mod_monoiso_masses.append(mod.get('monoisotopicMassDelta', None))
+                    mod_accessions.append(cvquery(mod))
 
             crosslinker_pair_id = None
             link_site1 = None
