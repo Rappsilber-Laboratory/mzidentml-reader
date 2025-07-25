@@ -470,28 +470,19 @@ class MzIdParser:
                         crosslinker_pair_id_donor = temp
                         link_site_donor = mod['location']
                         crosslinker_modmass = mod['monoisotopicMassDelta']
-                        # if mod has key 'name' - it should, as consequence of having 'suitably sourced CV param'
-                        if 'name' in mod:
-                            crosslinker_accession = mod['name'].accession
-                        else:
-                            crosslinker_accession = None
-                            # Todo: reinstate this warning
-                            # self.warnings.append(
-                            #     f'No accession for crosslinker {crosslinker_pair_id} for peptide {pep_id}')
                     # crosslink acceptor/
                     else:
                         temp = cvquery(mod, 'MS:1002510')
                         if temp is not None:
                             crosslinker_pair_id_acceptor = temp
                             link_site_acc = mod['location']
-                        else:
-                            # no crosslinker modifications
-                            cvs = cvquery(mod)
-                            mod_pos.append(mod['location'])
-                            # mod_accessions.append(cvs)  # unit of fragment loss is always daltons
-                            mod_avg_masses.append(mod.get('avgMassDelta', None))
-                            mod_monoiso_masses.append(mod.get('monoisotopicMassDelta', None))
-                    mod_accessions.append(cvquery(mod))
+
+                    # for all modifications
+                    cvs = cvquery(mod)
+                    mod_pos.append(mod['location'])
+                    mod_accessions.append(cvs)  # unit of fragment loss is always daltons
+                    mod_avg_masses.append(mod.get('avgMassDelta', None))
+                    mod_monoiso_masses.append(mod.get('monoisotopicMassDelta', None))
 
             crosslinker_pair_id = None
             link_site1 = None
