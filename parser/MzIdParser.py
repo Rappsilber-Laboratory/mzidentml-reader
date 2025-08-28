@@ -300,7 +300,7 @@ class MzIdParser:
                         'mass': mass_delta,
                         'residues': ''.join([r for r in mod['residues'] if r != ' ']),
                         'fixed_mod': mod['fixedMod'],
-                        'accessions': str(accessions),
+                        'accessions': accessions,
                         'crosslinker_id': crosslinker_id
                     })
                     mod_index += 1
@@ -455,7 +455,6 @@ class MzIdParser:
             crosslinker_modmass = 0
             crosslinker_pair_id_donor = None
             crosslinker_pair_id_acceptor = None
-            crosslinker_accession = None
             mod_pos = []
             mod_accessions = []
             mod_avg_masses = []
@@ -525,8 +524,7 @@ class MzIdParser:
                 'link_site1': link_site1,
                 'link_site2': link_site2,
                 'crosslinker_modmass': crosslinker_modmass,
-                'crosslinker_pair_id': crosslinker_pair_id,
-                'crosslinker_accession': crosslinker_accession
+                'crosslinker_pair_id': crosslinker_pair_id
             }
 
             peptides.append(peptide_data)

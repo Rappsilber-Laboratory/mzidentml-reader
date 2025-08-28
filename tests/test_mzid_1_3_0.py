@@ -103,15 +103,14 @@ def test_psql_looplink_mzid_parser(tmpdir, db_info, use_database, engine):
 
         assert results[0].id == 5  # 'peptide_7_1'
         assert results[0].base_sequence == 'DVIQSLVDDDLVAK'
-        assert results[0].mod_accessions == []
-        assert results[0].mod_avg_mass_deltas == []
-        assert results[0].mod_monoiso_mass_deltas == []
-        assert results[0].mod_positions == []
+        assert results[0].mod_accessions == [{'MS:1002509': 100.0, 'UNIMOD:2018': 'Xlink:EDC'}, {'MS:1002510': 100.0}]
+        assert results[0].mod_avg_mass_deltas == [None, None]
+        assert results[0].mod_monoiso_mass_deltas == [-18.010565, 0.0]
+        assert results[0].mod_positions == [10, 14]
         assert results[0].link_site1 == 10
         assert results[0].link_site2 == 14
         assert results[0].crosslinker_modmass == -18.010565
         assert results[0].crosslinker_pair_id == '100.0'
-        assert results[0].crosslinker_accession == 'UNIMOD:2018'
 
     engine.dispose()
 
@@ -158,7 +157,6 @@ def test_psql_noncov_mzid_parser(tmpdir, db_info, use_database, engine):
         assert results[0].link_site2 is None
         assert results[0].crosslinker_modmass == 0.0
         assert results[0].crosslinker_pair_id is None
-        assert results[0].crosslinker_accession is None
 
         t = Table("modifiedpeptide", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
                   quote=False)
@@ -180,6 +178,5 @@ def test_psql_noncov_mzid_parser(tmpdir, db_info, use_database, engine):
         assert results[0].link_site2 is None
         assert results[0].crosslinker_modmass == 0.0
         assert results[0].crosslinker_pair_id is None
-        assert results[0].crosslinker_accession is None
 
     engine.dispose()

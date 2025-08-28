@@ -24,7 +24,6 @@ class ModifiedPeptide(Base):
     link_site2: Mapped[int] = mapped_column(Integer, nullable=True)  # only used for storing loop links
     crosslinker_modmass: Mapped[float] = mapped_column(FLOAT, nullable=True)
     crosslinker_pair_id: Mapped[str] = mapped_column(Text, nullable=True)  # yes, it's a string
-    crosslinker_accession: Mapped[str] = mapped_column(Text, nullable=True)
 # CREATE INDEX ix_modifiedpeptide_id ON public.modifiedpeptide USING btree (id);
 # CREATE INDEX modifiedpeptide_upload_id__id_seq_idx ON public.modifiedpeptide (upload_id,id, base_sequence);
 # CREATE INDEX modifiedpeptide_upload_id_linksite_idx ON public.modifiedpeptide (upload_id, link_site1);
