@@ -11,28 +11,32 @@ It has three use cases:
 It uses the pyteomics library (https://pyteomics.readthedocs.io/en/latest/index.html) as the underlying parser for mzIdentML.
 Results are written into a relational database (PostgreSQL or SQLite) using sqlalchemy.
 
-## Requirements:
-python3.10
-
-pipenv
-
-sqlite3 for validation and residue pair extraction. postgresql or sqlite3 for creation of crosslinking-api dtabase 
-(the instructions below use posrgresql)
+## Requirements
+- Python 3.10
+- pipenv
+- SQLite3 for validation and residue pair extraction
+- PostgreSQL or SQLite3 for crosslinking-api database creation
 
 ## Installation
 
-Clone git repository and set up python envorment or install via PYPI:
+### Development Setup
+Clone the repository and set up the development environment:
 
+```bash
+git clone https://github.com/Rappsilber-Laboratory/mzidentml-reader.git
+cd mzidentml-reader
+pipenv install --python 3.10 --dev
+pipenv shell
 ```
-git clone https://github.com/Rappsilber-Laboratory/mzidentml-reader.git;
-cd x-mzidentml-converter;
-pipenv install --python 3.10;
-pipenv shell;
+
+### Production Installation
+Install via PyPI:
+```bash
+pip install mzidentml-reader
 ```
+PyPI project: https://pypi.org/project/mzidentml-reader/
 
-PYPI project: https://pypi.org/project/mzidentml-reader/
-
-PYPI instructions: https://packaging.python.org/en/latest/tutorials/installing-packages/
+For more installation details, see: https://packaging.python.org/en/latest/tutorials/installing-packages/
 
 ## Usage
 
@@ -148,15 +152,37 @@ name of the directory containing the mzIdentML file.
 
 
 
-## To run tests
+## Development
 
-Make sure we have the right db user available
+### Code Quality
+This project uses standardized code quality tools:
+
+```bash
+# Format code
+pipenv run black .
+
+# Sort imports
+pipenv run isort .
+
+# Check style and syntax
+pipenv run flake8
+
+# Run all quality checks
+pipenv run pre-commit run --all-files
 ```
+
+### Testing
+Make sure the test database user is available:
+```bash
 psql -p 5432 -c "create role ximzid_unittests with password 'ximzid_unittests';"
 psql -p 5432 -c 'alter role ximzid_unittests with login;'
 psql -p 5432 -c 'alter role ximzid_unittests with createdb;'
 psql -p 5432 -c 'GRANT pg_signal_backend TO ximzid_unittests;'
 ```
-run the tests
 
-```pipenv run pytest```
+Run tests with coverage:
+```bash
+pipenv run pytest  # Run tests with coverage (80% threshold)
+pipenv run pytest --cov-report=html  # Generate HTML coverage report
+pipenv run pytest -m "not slow"  # Skip slow tests
+```
