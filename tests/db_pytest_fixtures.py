@@ -26,13 +26,24 @@ def psql_conn_str(db_info):
 @pytest.fixture()
 def engine(psql_conn_str):
     # A new SqlAlchemy connection to the test database
-    return create_engine(psql_conn_str)
+    engine = create_engine(psql_conn_str)
+    yield engine
+    engine.dispose()
 
 
-@pytest.fixture()
+@pytest.fixture(scope='function')
 def use_database(psql_conn_str):
     # Create a temporary test Postgresql database
+    # First ensure any existing database is dropped
+    try:
+        drop_db(psql_conn_str)
+    except:
+        pass  # Database might not exist
+
     create_db(psql_conn_str)
     create_schema(psql_conn_str)
     yield
+    # Give some time for connections to close
+    import time
+    time.sleep(0.1)
     drop_db(psql_conn_str)

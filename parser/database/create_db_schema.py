@@ -27,8 +27,42 @@ def drop_db(connection_str):
     :param connection_str:
     :return: None
     """
+    from sqlalchemy import text
+    import re
+
     engine = create_engine(connection_str)
-    drop_database(engine.url)
+
+    # Extract database name from connection string
+    db_match = re.search(r'/([^/?]+)(?:\?|$)', connection_str)
+    if not db_match:
+        drop_database(engine.url)
+        return
+
+    db_name = db_match.group(1)
+
+    # Create connection to postgres database to terminate connections
+    postgres_conn_str = connection_str.replace(f'/{db_name}', '/postgres')
+    postgres_engine = create_engine(postgres_conn_str)
+
+    try:
+        with postgres_engine.connect() as conn:
+            # Terminate all connections to the target database
+            conn.execute(text(f"""
+                SELECT pg_terminate_backend(pid)
+                FROM pg_stat_activity
+                WHERE datname = '{db_name}' AND pid <> pg_backend_pid()
+            """))
+            conn.commit()
+    except Exception:
+        pass  # Ignore errors if database doesn't exist
+    finally:
+        postgres_engine.dispose()
+
+    # Now drop the database
+    try:
+        drop_database(engine.url)
+    finally:
+        engine.dispose()
 
 
 def create_schema(connection_str):

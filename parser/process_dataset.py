@@ -425,6 +425,10 @@ def convert_dir(local_dir, project_identifier, writer_method, nopeaklist=False):
                     logger.error(f"Error parsing {file}")
                     logger.exception(e)
                     raise e
+                finally:
+                    # Dispose of the writer's engine to close database connections
+                    if hasattr(writer, 'engine'):
+                        writer.engine.dispose()
             else:
                 print(f'File {file} is schema invalid.')
                 sys.exit(1)
@@ -480,6 +484,10 @@ def validate_file(filepath, tmpdir, nopeaklist=False):
             print(f"Error parsing {filepath}")
             print(e)
             return False
+        finally:
+            # Dispose of the writer's engine to close database connections
+            if hasattr(writer, 'engine'):
+                writer.engine.dispose()
 
     else:
         print(f'File {filepath} is schema invalid.')
@@ -514,6 +522,10 @@ def read_sequences_and_residue_pairs(filepath, upload_id, conn_str):
     except Exception as e:
         print(f"Error parsing {filepath}")
         raise e
+    finally:
+        # Dispose of the writer's engine to close database connections
+        if hasattr(writer, 'engine'):
+            writer.engine.dispose()
 
 
 if __name__ == "__main__":

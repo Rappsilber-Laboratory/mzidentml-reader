@@ -14,6 +14,11 @@ def parse_full_csv_into_postgresql(mzid_file, peaklist, tmpdir, logger, use_data
     id_parser = FullCsvParser(mzid_file, str(tmpdir), peaklist, writer, logger)
     id_parser.check_required_columns()
     id_parser.parse()
+
+    # Dispose of the writer's engine to close database connections
+    if hasattr(writer, 'engine'):
+        writer.engine.dispose()
+
     return id_parser
 
 
@@ -29,6 +34,11 @@ def parse_no_peak_lists_csv_into_postgresql(mzid_file, peaklist, tmpdir, logger,
     id_parser = NoPeakListsCsvParser(mzid_file, str(tmpdir), peaklist, writer, logger)
     id_parser.check_required_columns()
     id_parser.parse()
+
+    # Dispose of the writer's engine to close database connections
+    if hasattr(writer, 'engine'):
+        writer.engine.dispose()
+
     return id_parser
 
 
@@ -44,6 +54,11 @@ def parse_links_only_csv_into_postgresql(mzid_file, peaklist, tmpdir, logger, us
     id_parser = LinksOnlyCsvParser(mzid_file, str(tmpdir), peaklist, writer, logger)
     id_parser.check_required_columns()
     id_parser.parse()
+
+    # Dispose of the writer's engine to close database connections
+    if hasattr(writer, 'engine'):
+        writer.engine.dispose()
+
     return id_parser
 
 
@@ -57,6 +72,11 @@ def parse_full_csv_into_sqllite(mzid_file, peaklist, tmpdir, logger, use_databas
     id_parser = FullCsvParser(mzid_file, str(tmpdir), peaklist, writer, logger)
     id_parser.check_required_columns()
     id_parser.parse()
+
+    # Dispose of the writer's engine to close database connections
+    if hasattr(writer, 'engine'):
+        writer.engine.dispose()
+
     return id_parser
 
 
@@ -70,6 +90,11 @@ def parse_no_peak_lists_csv_into_sqllite(mzid_file, peaklist, tmpdir, logger, us
     id_parser = NoPeakListsCsvParser(mzid_file, str(tmpdir), peaklist, writer, logger)
     id_parser.check_required_columns()
     id_parser.parse()
+
+    # Dispose of the writer's engine to close database connections
+    if hasattr(writer, 'engine'):
+        writer.engine.dispose()
+
     return id_parser
 
 
@@ -83,6 +108,11 @@ def parse_links_only_csv_into_sqllite(mzid_file, peaklist, tmpdir, logger, use_d
     id_parser = LinksOnlyCsvParser(mzid_file, str(tmpdir), peaklist, writer, logger)
     id_parser.check_required_columns()
     id_parser.parse()
+
+    # Dispose of the writer's engine to close database connections
+    if hasattr(writer, 'engine'):
+        writer.engine.dispose()
+
     return id_parser
 
 # def parse_csv_into_sqlite_xispec(mzid_file, peaklist, tmpdir, logger, engine):
