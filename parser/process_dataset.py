@@ -445,8 +445,7 @@ def convert_from_ftp(
     for f in files:
         if not (
             os.path.isfile(os.path.join(str(path), f))
-            or f.lower
-            == "generated"  # dunno what these files are but they seem to make ftp break
+            or f.lower() == "generated"  # skip directories that break ftp
             or f.lower().endswith("raw")
             or f.lower().endswith("raw.gz")
             or f.lower().endswith("all.zip")
