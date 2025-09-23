@@ -123,7 +123,7 @@ e.g. so its content is:
 ```
 [postgresql]
 host=localhost
-database=xitest
+database=crosslinking
 user=xiadmin
 password=your_password_here
 port=5432
