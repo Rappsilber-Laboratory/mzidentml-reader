@@ -1,8 +1,9 @@
 """SimpleFASTA.py - Parse a FASTA file and return a dictionary of the sequences."""
+
 import re
 
-
 #  why aren't we using pyteomics? todo? probably we haven't look at yet coz its only used by cvs parsers not mzid
+
 
 # noinspection PyUnusedLocal
 def get_db_sequence_dict(fasta_file_list):
@@ -21,7 +22,9 @@ def get_db_sequence_dict(fasta_file_list):
             if not line.startswith(";"):
                 if line.startswith(">"):
                     if identifier is not None:
-                        add_entry(identifier, sequence, description, db_sequence_dict)
+                        add_entry(
+                            identifier, sequence, description, db_sequence_dict
+                        )
                         identifier = None
                         sequence = ""
                         description = None
@@ -53,7 +56,7 @@ def add_entry(identifier, sequence, description, seq_dict):
     :param seq_dict:
     :return: None
     """
-    m = re.search(r'..\|(.*)\|(.*)\s?', identifier)
+    m = re.search(r"..\|(.*)\|(.*)\s?", identifier)
     # id = identifier
     accession = identifier
     name = identifier

@@ -1,4 +1,5 @@
 """Writer.py - Abstract class for writing results to a database."""
+
 from abc import ABC, abstractmethod
 
 
@@ -7,6 +8,7 @@ class Writer(ABC):
     """
     Interface for writing results to a database.
     """
+
     def __init__(self, upload_id=None, pxid=None):
         self.pxid = pxid
         self.upload_id = upload_id
@@ -30,8 +32,16 @@ class Writer(ABC):
         pass
 
     @abstractmethod
-    def write_mzid_info(self, analysis_software_list, spectra_formats,
-                        provider, audits, samples, bib, upload_id):
+    def write_mzid_info(
+        self,
+        analysis_software_list,
+        spectra_formats,
+        provider,
+        audits,
+        samples,
+        bib,
+        upload_id,
+    ):
         """
         Update the mzid_info table with the given data.
         :param analysis_software_list:

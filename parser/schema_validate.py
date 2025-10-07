@@ -1,7 +1,9 @@
 """schema_validate.py - Validate an mzIdentML file against 1.2.0 or 1.3.0 schema."""
+
 import importlib
 
 from lxml import etree
+
 
 def schema_validate(xml_file):
     """
@@ -10,15 +12,19 @@ def schema_validate(xml_file):
     :return: True if the XML is valid, False otherwise.
     """
     # Parse the XML file
-    with open(xml_file, 'r') as xml:
+    with open(xml_file, "r") as xml:
         xml_doc = etree.parse(xml)
 
     # Extract schema location from the XML (xsi:schemaLocation or xsi:noNamespaceSchemaLocation)
     root = xml_doc.getroot()
-    schema_location = root.attrib.get('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation')
+    schema_location = root.attrib.get(
+        "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation"
+    )
 
     if not schema_location:
-        schema_location = root.attrib.get('{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation')
+        schema_location = root.attrib.get(
+            "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
+        )
 
     if not schema_location:
         print("No schema location found in the XML document.")
@@ -32,24 +38,28 @@ def schema_validate(xml_file):
         return False
 
     # Assuming a single namespace-schema pair for simplicity
-    schema_url = schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
+    schema_url = (
+        schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
+    )
 
     # just take the file name from the url
-    schema_fname = schema_url.split('/')[-1]
+    schema_fname = schema_url.split("/")[-1]
     # if not 1.2.0 or 1.3.0
-    if schema_fname not in ['mzIdentML1.2.0.xsd', 'mzIdentML1.3.0.xsd']:
-        print(f"Sorry, we're only supporting 1.2.0 and 1.3.0 (the ones that contain crosslinks). Rejected schema file: {schema_fname}")
+    if schema_fname not in ["mzIdentML1.2.0.xsd", "mzIdentML1.3.0.xsd"]:
+        print(
+            f"Sorry, we're only supporting 1.2.0 and 1.3.0 (the ones that contain crosslinks). Rejected schema file: {schema_fname}"
+        )
         return False
 
     try:
         # Access `logging.ini` as a resource inside the package
-        with importlib.resources.path('schema', schema_fname) as schema_file:
+        with importlib.resources.path("schema", schema_fname) as schema_file:
             # current_directory = os.getcwd()
             # # print(f"Current working directory: {current_directory}")
             # # read from scehma directory
             # schema_file = os.path.join(current_directory, '..', 'schema', schema_fname)
             # # Parse the XSD file
-            with open(schema_file, 'r') as schema_file_stream:
+            with open(schema_file, "r") as schema_file_stream:
                 schema_root = etree.XML(schema_file_stream.read())
             schema = etree.XMLSchema(schema_root)
 
@@ -67,6 +77,3 @@ def schema_validate(xml_file):
 
     except FileNotFoundError:
         print("Schema file not found.")
-
-
-

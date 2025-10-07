@@ -17,5 +17,5 @@ __all__ = [
     "spectradata",
     "spectrum",
     "spectrumidentificationprotocol",
-    "upload"
+    "upload",
 ]

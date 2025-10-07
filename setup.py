@@ -1,8 +1,7 @@
 import codecs
 import os.path
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 with open("README.md", encoding="UTF-8") as fh:
     long_description = fh.read()
@@ -24,10 +23,10 @@ def get_version(rel_path):
 
 setup(
     name="mzidentml-reader",
-    version="0.4.1",
+    version="0.4.5",
     description="mzidentml-reader uses pyteomics (https://pyteomics.readthedocs.io/en/latest/index.html) to "
-                "parse mzIdentML files (v1.2.0) and extract crosslink information. Results are written to a "
-                "relational database (PostgreSQL or SQLite) using sqlalchemy.",
+    "parse mzIdentML files (v1.2.0) and extract crosslink information. Results are written to a "
+    "relational database (PostgreSQL or SQLite) using sqlalchemy.",
     long_description_content_type="text/markdown",
     long_description=long_description,
     author="Colin Combe, Lars Kolbowski, Suresh Hewapathirana",
@@ -35,29 +34,29 @@ setup(
     url="https://github.com/PRIDE-Archive/xi-mzidentml-converter",
     packages=find_packages(),
     include_package_data=True,
-    package_data={'config': ['logging.ini'], 'schema': ['*.xsd']},
+    package_data={"config": ["logging.ini"], "schema": ["*.xsd"]},
     install_requires=[
-        'lxml>=4.9.1',
-        'numpy>=1.14.3',
-        'pandas>=0.21.0',
-        'pymzml>=0.7.8',
-        'pyteomics>=4.7.3',
-        'requests>=2.31.0',
-        'urllib3>=1.24.2',
-        'pytest',
-        'psycopg2-binary',
-        'sqlalchemy>=2.0.38',
-        'sqlalchemy-utils',
-        'obonet==1.1.0',
-        'orjson',
-        'certifi>=2023.7.22',
-        'python-multipart>=0.0.18',
-        'python-jose>=3.3.0',
-        'passlib',
-        'jose',
-
+        "lxml>=4.9.1",
+        "numpy>=1.14.3",
+        "pandas>=0.21.0",
+        "pymzml>=0.7.8",
+        "pyteomics>=4.7.3",
+        "requests>=2.31.0",
+        "urllib3>=1.24.2",
+        "psycopg2-binary",
+        "sqlalchemy>=2.0.38",
+        "sqlalchemy-utils",
+        "obonet==1.1.0",
+        "orjson",
+        "certifi>=2023.7.22",
+        "python-multipart>=0.0.18",
+        "python-jose>=3.3.0",
+        "passlib",
+        "jose",
     ],
-    entry_points={"console_scripts": ["process_dataset = parser.process_dataset:main"]},
+    entry_points={
+        "console_scripts": ["process_dataset = parser.process_dataset:main"]
+    },
     platforms=["any"],
     classifiers=[
         "Programming Language :: Python :: 3",

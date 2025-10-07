@@ -1,30 +1,36 @@
 """
 PeakListWrapper.py
 """
-import ntpath
-import zipfile
-import re
-import gzip
-import os
-from pyteomics import mgf, mzml, ms2
-from abc import ABC, abstractmethod
-import numpy as np
-import io
-import tarfile
 
-#todo -check error handling
+import gzip
+import io
+import ntpath
+import os
+import re
+import tarfile
+import zipfile
+from abc import ABC, abstractmethod
+
+import numpy as np
+from pyteomics import mgf, ms2, mzml
+
+
+# todo -check error handling
 class PeakListParseError(Exception):
     """raised if error reading peaklist, invalid spectrum id or spectrum not found in peaklist file."""
+
     pass
 
 
 class SpectrumIdFormatError(Exception):
     """raised if the spectrum id format is not supported by the reader."""
+
     pass
 
 
 class ScanNotFoundException(Exception):
     """raised if the scan is not found in the mzML file."""
+
     pass
 
 
@@ -32,6 +38,7 @@ class Spectrum:
     """
     A class to represent a spectrum.
     """
+
     def __init__(self, precursor, mz_array, int_array, rt=np.nan):
         """
         Initialise a Spectrum object.
@@ -57,7 +64,10 @@ class PeakListWrapper:
     """
     A class to wrap peak list files and provide an interface to access the spectra.
     """
-    def __init__(self, pl_path, file_format_accession, spectrum_id_format_accession):
+
+    def __init__(
+        self, pl_path, file_format_accession, spectrum_id_format_accession
+    ):
         self.file_format_accession = file_format_accession
         self.spectrum_id_format_accession = spectrum_id_format_accession
         self.peak_list_path = pl_path
@@ -75,7 +85,8 @@ class PeakListWrapper:
             self.reader.load(pl_path)
         except Exception as e:
             message = "Error reading peak list file {0}: {1} - Arguments:\n{2!r}".format(
-                self.peak_list_file_name, type(e).__name__, e.args)
+                self.peak_list_file_name, type(e).__name__, e.args
+            )
             raise PeakListParseError(message)
 
     def __getitem__(self, spec_id):
@@ -87,31 +98,31 @@ class PeakListWrapper:
         Check if the peak list is in MGF format.
         :return: bbol
         """
-        return self.file_format_accession == 'MS:1001062'
+        return self.file_format_accession == "MS:1001062"
 
     def is_mzml(self):
         """
         Check if the peak list is in mzML format.
         :return: bool
         """
-        return self.file_format_accession == 'MS:1000584'
+        return self.file_format_accession == "MS:1000584"
 
     def is_ms2(self):
         """
         Check if the peak list is in MS2 format.
         :return: bool
         """
-        return self.file_format_accession == 'MS:1001466'
+        return self.file_format_accession == "MS:1001466"
 
     @staticmethod
     def extract_gz(in_file):
         """
         Extract gzipped file.
         """
-        if in_file.endswith('.gz'):
-            in_f = gzip.open(in_file, 'rb')
+        if in_file.endswith(".gz"):
+            in_f = gzip.open(in_file, "rb")
             in_file = in_file.replace(".gz", "")
-            out_f = open(in_file, 'wb')
+            out_f = open(in_file, "wb")
             out_f.write(in_f.read())
             in_f.close()
             out_f.close()
@@ -122,7 +133,7 @@ class PeakListWrapper:
             raise Exception(f"unsupported file extension for: {in_file}")
 
     @staticmethod
-    def unzip_peak_lists(zip_file, out_path='.'):
+    def unzip_peak_lists(zip_file, out_path="."):
         """
         Unzip and return resulting folder.
 
@@ -131,11 +142,17 @@ class PeakListWrapper:
         :return: path to resulting folder
         """
         if zip_file.endswith(".zip"):
-            zip_ref = zipfile.ZipFile(zip_file, 'r')
-            unzip_path = os.path.join(str(out_path), ntpath.basename(zip_file + '_unzip'))
-            zip_ref.extractall(unzip_path)
-            zip_ref.close()
-
+            with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                unzip_path = os.path.join(
+                    str(out_path), f"{ntpath.basename(zip_file)}_unzip"
+                )
+                os.makedirs(unzip_path, exist_ok=True)
+                base = os.path.abspath(unzip_path) + os.sep
+                for member in zip_ref.infolist():
+                    dest = os.path.abspath(os.path.join(unzip_path, member.filename))
+                    if not dest.startswith(base):
+                        raise Exception(f"Illegal path in zip: {member.filename}")
+                    zip_ref.extract(member, unzip_path)
             return unzip_path
 
         else:
@@ -168,8 +185,9 @@ class SpectraReader(ABC):
         if source_path is None:
             if isinstance(source, str):
                 self.source_path = source
-            elif issubclass(type(source), io.TextIOBase) or \
-                    issubclass(type(source), tarfile.ExFileObject):
+            elif issubclass(type(source), io.TextIOBase) or issubclass(
+                type(source), tarfile.ExFileObject
+            ):
                 self.source_path = source.name
         else:
             self.source_path = source_path
@@ -200,7 +218,7 @@ class MGFReader(SpectraReader):
         """
         # MS:1000774 multiple peak list nativeID format - zero based
         # index=xsd:nonNegativeInteger
-        if self.spectrum_id_format_accession == 'MS:1000774':
+        if self.spectrum_id_format_accession == "MS:1000774":
             try:
                 matches = re.match("index=([0-9]+)", spec_id).groups()
                 spec_id = int(matches[0])
@@ -219,7 +237,7 @@ class MGFReader(SpectraReader):
         # The nativeID must be the same as the source file ID.
         # Used for referencing peak list files with one spectrum per file,
         # typically in a folder of PKL or DTAs, where each sourceFileRef is different.
-        elif self.spectrum_id_format_accession == 'MS:1000775':
+        elif self.spectrum_id_format_accession == "MS:1000775":
             spec_id = 0
             # noinspection PyUnresolvedReferences
             spec = self._reader[spec_id]
@@ -232,7 +250,8 @@ class MGFReader(SpectraReader):
 
         else:
             raise SpectrumIdFormatError(
-                f"{self.spectrum_id_format_accession} not supported for MGF")
+                f"{self.spectrum_id_format_accession} not supported for MGF"
+            )
 
         return self._convert_spectrum(spec)
 
@@ -250,15 +269,17 @@ class MGFReader(SpectraReader):
     def _convert_spectrum(self, spec):
         """Convert the spectrum from the reader to a Spectrum object."""
         precursor = {
-            'mz': spec['params']['pepmass'][0],
-            'charge': spec['params']['charge'][0],
-            'intensity': spec['params']['pepmass'][1]
+            "mz": spec["params"]["pepmass"][0],
+            "charge": spec["params"]["charge"][0],
+            "intensity": spec["params"]["pepmass"][1],
         }
 
         # parse retention time, default to NaN
-        rt = spec['params'].get('rtinseconds', np.nan)
+        rt = spec["params"].get("rtinseconds", np.nan)
 
-        return Spectrum(precursor, spec['m/z array'], spec['intensity array'], rt)
+        return Spectrum(
+            precursor, spec["m/z array"], spec["intensity array"], rt
+        )
 
 
 class MZMLReader(SpectraReader):
@@ -274,7 +295,7 @@ class MZMLReader(SpectraReader):
         """
         # MS:1001530 mzML unique identifier:
         # Used for referencing mzML. The value of the spectrum ID attribute is referenced directly.
-        if self.spectrum_id_format_accession == 'MS:1001530':
+        if self.spectrum_id_format_accession == "MS:1001530":
             spec = self._reader.get_by_id(spec_id)
 
         # ToDo: not supported for now.
@@ -299,7 +320,8 @@ class MZMLReader(SpectraReader):
 
         else:
             raise SpectrumIdFormatError(
-                f"{self.spectrum_id_format_accession} not supported for mzML!")
+                f"{self.spectrum_id_format_accession} not supported for mzML!"
+            )
 
         return self._convert_spectrum(spec)
 
@@ -317,8 +339,9 @@ class MZMLReader(SpectraReader):
 
     def reset(self):
         """Reset the reader."""
-        if issubclass(type(self._source), tarfile.ExFileObject) or \
-                issubclass(type(self._source), zipfile.ZipExtFile):
+        if issubclass(type(self._source), tarfile.ExFileObject) or issubclass(
+            type(self._source), zipfile.ZipExtFile
+        ):
             self._source.seek(0)
             self._reader = mzml.read(self._source)
         else:
@@ -327,30 +350,41 @@ class MZMLReader(SpectraReader):
     def _convert_spectrum(self, spec):
 
         # check for single scan per spectrum
-        if spec['scanList']['count'] != 1:
+        if spec["scanList"]["count"] != 1:
             raise ValueError(
-                "xiSEARCH2 currently only supports a single scan per spectrum.")
-        scan = spec['scanList']['scan'][0]
+                "xiSEARCH2 currently only supports a single scan per spectrum."
+            )
+        scan = spec["scanList"]["scan"][0]
 
         # check for single precursor per spectrum
-        if spec['precursorList']['count'] != 1 or \
-                spec['precursorList']['precursor'][0]['selectedIonList']['count'] != 1:
+        if (
+            spec["precursorList"]["count"] != 1
+            or spec["precursorList"]["precursor"][0]["selectedIonList"][
+                "count"
+            ]
+            != 1
+        ):
             raise ValueError(
-                "Currently only a single precursor per spectrum is supported.")
-        p = spec['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]
+                "Currently only a single precursor per spectrum is supported."
+            )
+        p = spec["precursorList"]["precursor"][0]["selectedIonList"][
+            "selectedIon"
+        ][0]
 
         # create precursor dict
         precursor = {
-            'mz': p['selected ion m/z'],
-            'charge': p.get('charge state', np.nan),
-            'intensity': p.get('peak intensity', np.nan)
+            "mz": p["selected ion m/z"],
+            "charge": p.get("charge state", np.nan),
+            "intensity": p.get("peak intensity", np.nan),
         }
 
         # parse retention time, default to NaN
-        rt = scan.get('scan start time', np.nan)
+        rt = scan.get("scan start time", np.nan)
         rt = rt * 60
 
-        return Spectrum(precursor, spec['m/z array'], spec['intensity array'], rt)
+        return Spectrum(
+            precursor, spec["m/z array"], spec["intensity array"], rt
+        )
 
 
 class MS2Reader(SpectraReader):
@@ -359,7 +393,7 @@ class MS2Reader(SpectraReader):
     def __getitem__(self, spec_id):
         """Return the spectrum depending on the SpectrumIdFormat."""
         # MS:1000774 multiple peak list nativeID format - zero based
-        if self.spectrum_id_format_accession == 'MS:1000774':
+        if self.spectrum_id_format_accession == "MS:1000774":
             try:
                 matches = re.match("index=([0-9]+)", spec_id).groups()
                 spec_id = int(matches[0])
@@ -376,7 +410,7 @@ class MS2Reader(SpectraReader):
         # The nativeID must be the same as the source file ID.
         # Used for referencing peak list files with one spectrum per file,
         # typically in a folder of PKL or DTAs, where each sourceFileRef is different.
-        elif self.spectrum_id_format_accession == 'MS:1000775':
+        elif self.spectrum_id_format_accession == "MS:1000775":
             spec_id = 0
 
         # ToDo: not supported for now.
@@ -388,7 +422,8 @@ class MS2Reader(SpectraReader):
 
         else:
             raise SpectrumIdFormatError(
-                f"{self.spectrum_id_format_accession} not supported for MS2")
+                f"{self.spectrum_id_format_accession} not supported for MS2"
+            )
 
         try:
             spec = self._reader[spec_id]
@@ -411,24 +446,26 @@ class MS2Reader(SpectraReader):
         """
         Convert spectrum to Spectrum object.
         """
-        if 'PrecursorInt' in spec['params']:
+        if "PrecursorInt" in spec["params"]:
             precursor = {
-                'mz': spec['params']['precursor m/z'],
-                'charge': spec['params']['charge'][0],
-                'intensity': spec['params']['PrecursorInt']
+                "mz": spec["params"]["precursor m/z"],
+                "charge": spec["params"]["charge"][0],
+                "intensity": spec["params"]["PrecursorInt"],
             }
         else:
             precursor = {
-                'mz': spec['params']['precursor m/z'],
-                'charge': spec['params']['charge'][0]
+                "mz": spec["params"]["precursor m/z"],
+                "charge": spec["params"]["charge"][0],
             }
 
         # parse retention time, default to NaN
-        rt = spec['params'].get('RetTime', np.nan)
+        rt = spec["params"].get("RetTime", np.nan)
         rt = float(rt) * 60
 
-        return Spectrum(precursor, spec['m/z array'], spec['intensity array'], rt)
+        return Spectrum(
+            precursor, spec["m/z array"], spec["intensity array"], rt
+        )
 
 
 class MyMS2(ms2.IndexedMS2):
-    label = r'S\s+(.*\S)'
+    label = r"S\s+(.*\S)"

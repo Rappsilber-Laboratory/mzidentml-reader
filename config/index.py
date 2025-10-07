@@ -2,6 +2,7 @@
 index.py
 This file contains helper function to get database session
 """
+
 from config.database import SessionLocal
 
 

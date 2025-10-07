@@ -1,10 +1,12 @@
 """APIWriter.py - Class for writing results via an API."""
-import traceback
-import requests
+
 import json
+import traceback
+from parser.Writer import Writer
+
+import requests
 
 from config.config_parser import get_api_configs
-from parser.Writer import Writer
 
 
 # noinspection PyPep8Naming
@@ -14,9 +16,9 @@ class APIWriter(Writer):
     def __init__(self, upload_id=None, pxid=None):
         super().__init__(upload_id, pxid)
         configs = get_api_configs()
-        self.base_url = configs['base_url']
-        self.api_key = configs['api_key']
-        self.api_key_value = configs['api_key_value']
+        self.base_url = configs["base_url"]
+        self.api_key = configs["api_key"]
+        self.api_key_value = configs["api_key_value"]
 
     def write_data(self, table, data):
         response = None
@@ -24,7 +26,10 @@ class APIWriter(Writer):
             API_ENDPOINT = self.base_url + "/write_data"
             API_KEY_VALUE = self.api_key_value
             API_KEY = self.api_key
-            headers = {'Content-Type': 'application/json', API_KEY: API_KEY_VALUE}
+            headers = {
+                "Content-Type": "application/json",
+                API_KEY: API_KEY_VALUE,
+            }
             payload = {
                 "table": table,
                 "data": data,
@@ -32,7 +37,9 @@ class APIWriter(Writer):
             # Calculate the size of the payload
             payload_size = len(json.dumps(payload))
             print("Payload Size:", payload_size)  # Print the payload size
-            response = requests.post(url=API_ENDPOINT, headers=headers, json=payload)
+            response = requests.post(
+                url=API_ENDPOINT, headers=headers, json=payload
+            )
             response.raise_for_status()
 
             # Check the response status code and handle it as needed
@@ -56,12 +63,19 @@ class APIWriter(Writer):
             API_ENDPOINT = self.base_url + "/write_new_upload"
             API_KEY_VALUE = self.api_key_value
             API_KEY = self.api_key
-            headers = {'Content-Type': 'application/json', API_KEY: API_KEY_VALUE}
+            headers = {
+                "Content-Type": "application/json",
+                API_KEY: API_KEY_VALUE,
+            }
 
             # Calculate the size of the payload
             payload_size = len(json.dumps(data))
-            print("write_new_upload Payload Size:", payload_size)  # Print the payload size
-            response = requests.post(url=API_ENDPOINT, headers=headers, json=data)
+            print(
+                "write_new_upload Payload Size:", payload_size
+            )  # Print the payload size
+            response = requests.post(
+                url=API_ENDPOINT, headers=headers, json=data
+            )
             response.raise_for_status()
 
             # Check the response status code and handle it as needed
@@ -78,14 +92,27 @@ class APIWriter(Writer):
         else:
             return None
 
-    def write_mzid_info(self, analysis_software_list, spectra_formats,
-                        provider, audits, samples, bib, upload_id):
+    def write_mzid_info(
+        self,
+        analysis_software_list,
+        spectra_formats,
+        provider,
+        audits,
+        samples,
+        bib,
+        upload_id,
+    ):
         response = None
         try:
-            API_ENDPOINT = self.base_url + "/write_mzid_info?upload_id=" + str(upload_id)
+            API_ENDPOINT = (
+                self.base_url + "/write_mzid_info?upload_id=" + str(upload_id)
+            )
             API_KEY_VALUE = self.api_key_value
             API_KEY = self.api_key
-            headers = {'Content-Type': 'application/json', API_KEY: API_KEY_VALUE}
+            headers = {
+                "Content-Type": "application/json",
+                API_KEY: API_KEY_VALUE,
+            }
             payload = {
                 "analysis_software_list": analysis_software_list,
                 "spectra_formats": spectra_formats,
@@ -96,8 +123,12 @@ class APIWriter(Writer):
             }
             # Calculate the size of the payload
             payload_size = len(json.dumps(payload))
-            print("write_mzid_info Payload Size:", payload_size)  # Print the payload size
-            response = requests.post(url=API_ENDPOINT, headers=headers, json=payload)
+            print(
+                "write_mzid_info Payload Size:", payload_size
+            )  # Print the payload size
+            response = requests.post(
+                url=API_ENDPOINT, headers=headers, json=payload
+            )
             response.raise_for_status()
             result = response.json()
 
@@ -117,7 +148,9 @@ class APIWriter(Writer):
         else:
             return None
 
-    def write_other_info(self, contains_crosslinks, upload_warnings, upload_id):
+    def write_other_info(
+        self, contains_crosslinks, upload_warnings, upload_id
+    ):
         """
         Update Upload row with remaining info.
         :param contains_crosslinks:
@@ -128,15 +161,22 @@ class APIWriter(Writer):
         response = None
         try:
             # todo: use urljoin
-            API_ENDPOINT = self.base_url + "/write_other_info?upload_id=" + str(upload_id)
+            API_ENDPOINT = (
+                self.base_url + "/write_other_info?upload_id=" + str(upload_id)
+            )
             API_KEY_VALUE = self.api_key_value
             API_KEY = self.api_key
-            headers = {'Content-Type': 'application/json', API_KEY: API_KEY_VALUE}
+            headers = {
+                "Content-Type": "application/json",
+                API_KEY: API_KEY_VALUE,
+            }
             payload = {
                 "contains_crosslinks": contains_crosslinks,
                 "upload_warnings": upload_warnings,
             }
-            response = requests.post(url=API_ENDPOINT, headers=headers, json=payload)
+            response = requests.post(
+                url=API_ENDPOINT, headers=headers, json=payload
+            )
             response.raise_for_status()
             result = response.json()
 

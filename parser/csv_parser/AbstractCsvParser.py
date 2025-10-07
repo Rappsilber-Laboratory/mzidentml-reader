@@ -1,20 +1,21 @@
 """Abstract class for csv parsers."""
+
 import abc
 import os
+from parser import SimpleFASTA
+from parser.peaklistReader.PeakListWrapper import PeakListWrapper
 from time import time
 
 import numpy as np
 import pandas as pd
 from sqlalchemy import Table
 
-from parser import SimpleFASTA
-from parser.peaklistReader.PeakListWrapper import PeakListWrapper
-
 
 class CsvParseException(Exception):
     """
     Exception raised for errors parsing the csv file.
     """
+
     pass
 
 
@@ -23,6 +24,7 @@ class MissingFileException(Exception):
     Exception raised for missing files.
     todo - reuse other exception?
     """
+
     pass
 
 
@@ -50,22 +52,22 @@ class AbstractCsvParser(abc.ABC):
         pass
 
     default_values = {
-        'rank': 1,
-        'pepseq1': '',
-        'pepseq2': '',
-        'linkpos1': -1,
-        'linkpos2': -1,
-        'crosslinkermodmass': 0,
-        'passthreshold': True,
-        'fragmenttolerance': '10 ppm',
-        'iontypes': 'peptide;b;y',
-        'score': 0,
-        'decoy1': -1,
-        'decoy2': -1,
-        'protein2': '',
-        'peppos2': -1,
-        'expmz': -1,  # ToDo: required in mzid - also make required col?
-        'calcmz': -1
+        "rank": 1,
+        "pepseq1": "",
+        "pepseq2": "",
+        "linkpos1": -1,
+        "linkpos2": -1,
+        "crosslinkermodmass": 0,
+        "passthreshold": True,
+        "fragmenttolerance": "10 ppm",
+        "iontypes": "peptide;b;y",
+        "score": 0,
+        "decoy1": -1,
+        "decoy2": -1,
+        "protein2": "",
+        "peppos2": -1,
+        "expmz": -1,  # ToDo: required in mzid - also make required col?
+        "calcmz": -1,
     }
 
     def __init__(self, csv_path, temp_dir, peak_list_dir, writer, logger):
@@ -77,14 +79,16 @@ class AbstractCsvParser(abc.ABC):
         :param logger: logger object
         """
         self.csv_path = csv_path
-        self.peak_list_readers = {}  # peak list readers indexed by spectraData_ref
+        self.peak_list_readers = (
+            {}
+        )  # peak list readers indexed by spectraData_ref
 
         self.temp_dir = temp_dir
-        if not self.temp_dir.endswith('/'):
-            self.temp_dir += '/'
+        if not self.temp_dir.endswith("/"):
+            self.temp_dir += "/"
         self.peak_list_dir = peak_list_dir
-        if peak_list_dir and not peak_list_dir.endswith('/'):
-            self.peak_list_dir += '/'
+        if peak_list_dir and not peak_list_dir.endswith("/"):
+            self.peak_list_dir += "/"
 
         self.writer = writer
         self.logger = logger
@@ -92,7 +96,7 @@ class AbstractCsvParser(abc.ABC):
         # self.spectra_data_protocol_map = {}
         # ToDo: Might change to pyteomics unimod obo module
         # ToDo: check self.modlist against unimod?
-        self.unimod_path = 'obo/unimod.obo'
+        self.unimod_path = "obo/unimod.obo"
         self.modlist = []
         self.unknown_mods = set()
 
@@ -105,7 +109,7 @@ class AbstractCsvParser(abc.ABC):
 
         # connect to DB
 
-        self.logger.info('reading csv - start')
+        self.logger.info("reading csv - start")
         self.start_time = time()
         # schema: https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML1.2.0.xsd
         self.csv_reader = pd.read_csv(self.csv_path)
@@ -114,14 +118,25 @@ class AbstractCsvParser(abc.ABC):
         col_list = self.csv_reader.columns.tolist()
         duplicate_cols = set([x for x in col_list if col_list.count(x) > 1])
         if len(duplicate_cols) > 0:
-            raise CsvParseException("duplicate column(s): %s" % '; '.join(duplicate_cols))
+            raise CsvParseException(
+                "duplicate column(s): %s" % "; ".join(duplicate_cols)
+            )
 
-        self.csv_reader.columns = [x.lower().replace(" ", "") for x in self.csv_reader.columns]
-        self.meta_columns = [col for col in self.csv_reader.columns if col.startswith('meta')][:3]
+        self.csv_reader.columns = [
+            x.lower().replace(" ", "") for x in self.csv_reader.columns
+        ]
+        self.meta_columns = [
+            col for col in self.csv_reader.columns if col.startswith("meta")
+        ][:3]
 
         # remove unused columns
         for col in self.csv_reader.columns:
-            if col not in self.required_cols + self.optional_cols + self.meta_columns:
+            if (
+                col
+                not in self.required_cols
+                + self.optional_cols
+                + self.meta_columns
+            ):
                 try:
                     del self.csv_reader[col]
                 except KeyError:
@@ -150,7 +165,9 @@ class AbstractCsvParser(abc.ABC):
         """
         for required_col in self.required_cols:
             if required_col not in self.csv_reader.columns:
-                raise CsvParseException("Required csv column %s missing" % required_col)
+                raise CsvParseException(
+                    "Required csv column %s missing" % required_col
+                )
         return True
 
     def get_missing_required_columns(self):
@@ -193,15 +210,20 @@ class AbstractCsvParser(abc.ABC):
         for peak_list_file_name in self.csv_reader.peaklistfilename.unique():
 
             # ToDo: what about .ms2?
-            if peak_list_file_name.lower().endswith('.mgf'):
-                file_format_accession = 'MS:1001062'  # MGF
-                spectrum_id_format_accesion = 'MS:1000774'  # MS:1000774 multiple peak list nativeID format - zero based
+            if peak_list_file_name.lower().endswith(".mgf"):
+                file_format_accession = "MS:1001062"  # MGF
+                spectrum_id_format_accesion = "MS:1000774"  # MS:1000774 multiple peak list nativeID format - zero based
 
-            elif peak_list_file_name.lower().endswith('.mzml'):
-                file_format_accession = 'MS:1000584'  # mzML
-                spectrum_id_format_accesion = 'MS:1001530'  # mzML unique identifier
+            elif peak_list_file_name.lower().endswith(".mzml"):
+                file_format_accession = "MS:1000584"  # mzML
+                spectrum_id_format_accesion = (
+                    "MS:1001530"  # mzML unique identifier
+                )
             else:
-                raise CsvParseException("Unsupported peak list file type for: %s" % peak_list_file_name)
+                raise CsvParseException(
+                    "Unsupported peak list file type for: %s"
+                    % peak_list_file_name
+                )
 
             peak_list_file_path = self.peak_list_dir + peak_list_file_name
 
@@ -209,19 +231,23 @@ class AbstractCsvParser(abc.ABC):
                 peak_list_reader = PeakListWrapper(
                     peak_list_file_path,
                     file_format_accession,
-                    spectrum_id_format_accesion
+                    spectrum_id_format_accesion,
                 )
             except IOError:
                 # try gz version
                 try:
                     peak_list_reader = PeakListWrapper(
-                        PeakListWrapper.extract_gz(peak_list_file_path + '.gz'),
+                        PeakListWrapper.extract_gz(
+                            peak_list_file_path + ".gz"
+                        ),
                         file_format_accession,
-                        spectrum_id_format_accesion
+                        spectrum_id_format_accesion,
                     )
                 except IOError:
                     # ToDo: output all missing files not just first encountered. Use get_peak_list_file_names()?
-                    raise CsvParseException('Missing peak list file: %s' % peak_list_file_name)
+                    raise CsvParseException(
+                        "Missing peak list file: %s" % peak_list_file_name
+                    )
 
             peak_list_readers[peak_list_file_name] = peak_list_reader
 
@@ -248,7 +274,11 @@ class AbstractCsvParser(abc.ABC):
         # # ToDo: need to create MetaData
         # # self.writer.write_data('MetaData', meta_data)
 
-        self.logger.info('all done! Total time: ' + str(round(time() - start_time, 2)) + " sec")
+        self.logger.info(
+            "all done! Total time: "
+            + str(round(time() - start_time, 2))
+            + " sec"
+        )
 
     @abc.abstractmethod
     def main_loop(self):
@@ -277,16 +307,22 @@ class AbstractCsvParser(abc.ABC):
         """
         Parse db sequences.
         """
-        self.logger.info('reading fasta - start')
+        self.logger.info("reading fasta - start")
         self.start_time = time()
-        self.fasta = SimpleFASTA.get_db_sequence_dict(self.get_sequence_db_file_names())
-        self.logger.info('reading fasta - done. Time: ' + str(round(time() - self.start_time, 2)) + " sec")
+        self.fasta = SimpleFASTA.get_db_sequence_dict(
+            self.get_sequence_db_file_names()
+        )
+        self.logger.info(
+            "reading fasta - done. Time: "
+            + str(round(time() - self.start_time, 2))
+            + " sec"
+        )
 
     def upload_info(self):
         """
         Write new upload to database.
         """
-        self.logger.info('new csv upload')
+        self.logger.info("new csv upload")
         # # ident_file_size = os.path.getsize(self.csv_path)
         # # peak_list_file_names = json.dumps(self.get_peak_list_file_names(), cls=NumpyEncoder)
         # self.upload_id = self.db.new_upload([self.user_id, os.path.basename(self.csv_path), "-"],
@@ -303,26 +339,36 @@ class AbstractCsvParser(abc.ABC):
         upload_data = {
             # 'id': self.writer.upload_id,
             # 'user_id': self.writer.user_id,
-            'identification_file_name': os.path.basename(self.csv_path),
+            "identification_file_name": os.path.basename(self.csv_path),
         }
         # self.writer.write_data('Upload', upload_data)
-        table = Table('upload', self.writer.meta, autoload_with=self.writer.engine, quote=False)
+        table = Table(
+            "upload",
+            self.writer.meta,
+            autoload_with=self.writer.engine,
+            quote=False,
+        )
         with self.writer.engine.connect() as conn:
             # noinspection PyBroadException
             try:
-                statement = table.insert().values(upload_data).returning(table.columns[0])  # RETURNING id AS upload_id
+                statement = (
+                    table.insert()
+                    .values(upload_data)
+                    .returning(table.columns[0])
+                )  # RETURNING id AS upload_id
                 result = conn.execute(statement)
                 self.writer.upload_id = result.fetchall()[0][0]
                 conn.commit()
                 conn.close()
             except Exception:
                 # it's SQLite
-                upload_data['id'] = 1
+                upload_data["id"] = 1
                 statement = table.insert().values(upload_data)
                 conn.execute(statement)
-                self.writer.upload_id = upload_data['id']
+                self.writer.upload_id = upload_data["id"]
                 conn.commit()
                 conn.close()
+
 
 # class NumpyEncoder(json.JSONEncoder):
 #     def default(self, obj):

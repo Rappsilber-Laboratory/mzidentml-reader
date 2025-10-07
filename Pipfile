@@ -11,7 +11,6 @@ pymzml = ">=0.7.8"
 pyteomics = "4.7.3"
 requests = ">=2.31.0"
 urllib3 = ">=1.24.2"
-pytest = "*"
 psycopg2-binary = "*"
 sqlalchemy = ">=2.0.38"
 sqlalchemy-utils = "*"
@@ -25,7 +24,14 @@ passlib = "*"
 jose = "*"
 
 [dev-packages]
+pytest = "*"
+black = "*"
+isort = "*"
+pre-commit = "*"
+pytest-cov = "*"
+safety = "*"
+bandit = "*"
+flake8 = "*"
 
 [requires]
-python_version = ">=3.10"
-
+python_version = "3.10"

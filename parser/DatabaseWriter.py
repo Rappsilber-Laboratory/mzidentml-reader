@@ -1,9 +1,9 @@
 """DatabaseWriter class for writing results to a postgresql relational database."""
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy import Table
 
-from parser.Writer import Writer
 from parser.database.create_db_schema import create_schema
+from parser.Writer import Writer
+
+from sqlalchemy import MetaData, Table, create_engine
 from sqlalchemy_utils import database_exists
 
 
@@ -60,14 +60,24 @@ class DatabaseWriter(Writer):
         """
         table = Table(table, self.meta, autoload_with=self.engine, quote=False)
         with self.engine.connect() as conn:
-            statement = table.insert().values(data).returning(table.columns[0])  # RETURNING id AS upload_id
+            statement = (
+                table.insert().values(data).returning(table.columns[0])
+            )  # RETURNING id AS upload_id
             result = conn.execute(statement)
             conn.commit()
             conn.close()
         return result.fetchall()[0][0]
 
-    def write_mzid_info(self, analysis_software_list, spectra_formats,
-                        provider, audits, samples, bib, upload_id):
+    def write_mzid_info(
+        self,
+        analysis_software_list,
+        spectra_formats,
+        provider,
+        audits,
+        samples,
+        bib,
+        upload_id,
+    ):
         """
         Update Upload row with mzid info.
         :param analysis_software_list: (list) List of analysis software used.
@@ -79,21 +89,29 @@ class DatabaseWriter(Writer):
         :param upload_id:
         :return:
         """
-        upload = Table("upload", self.meta, autoload_with=self.engine, quote=False)
+        upload = Table(
+            "upload", self.meta, autoload_with=self.engine, quote=False
+        )
         # noinspection PyTypeChecker
-        stmt = upload.update().where(upload.c.id == str(upload_id)).values(
-            analysis_software_list=analysis_software_list,
-            spectra_formats=spectra_formats,
-            provider=provider,
-            audit_collection=audits,
-            analysis_sample_collection=samples,
-            bib=bib
+        stmt = (
+            upload.update()
+            .where(upload.c.id == str(upload_id))
+            .values(
+                analysis_software_list=analysis_software_list,
+                spectra_formats=spectra_formats,
+                provider=provider,
+                audit_collection=audits,
+                analysis_sample_collection=samples,
+                bib=bib,
+            )
         )
         with self.engine.connect() as conn:
             conn.execute(stmt)
             conn.commit()
 
-    def write_other_info(self, contains_crosslinks, upload_warnings, upload_id):
+    def write_other_info(
+        self, contains_crosslinks, upload_warnings, upload_id
+    ):
         """
         Update Upload row with remaining info.
 
@@ -103,12 +121,18 @@ class DatabaseWriter(Writer):
         :param upload_id:
         :return:
         """
-        upload = Table("upload", self.meta, autoload_with=self.engine, quote=False)
+        upload = Table(
+            "upload", self.meta, autoload_with=self.engine, quote=False
+        )
         with self.engine.connect() as conn:
             # noinspection PyTypeChecker
-            stmt = upload.update().where(upload.c.id == str(upload_id)).values(
-                contains_crosslinks=contains_crosslinks,
-                upload_warnings=upload_warnings,
+            stmt = (
+                upload.update()
+                .where(upload.c.id == str(upload_id))
+                .values(
+                    contains_crosslinks=contains_crosslinks,
+                    upload_warnings=upload_warnings,
+                )
             )
             conn.execute(stmt)
             conn.commit()

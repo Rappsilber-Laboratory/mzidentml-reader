@@ -8,12 +8,13 @@ def compare_postgresql_dumps(dump1, dump2):
     :param dump1: path to postgresql dump to compare.
     :param dump2: path to postgresql dump to compare.
     """
+
     def read_sql_dump(dump):
         # read the expected non-empty non-comment lines
         lines = []
-        with open(dump, 'r') as dump_file:
+        with open(dump, "r") as dump_file:
             for line in dump_file.readlines():
-                if not line.startswith('--') and not re.match(r'^\s*$', line):
+                if not line.startswith("--") and not re.match(r"^\s*$", line):
                     lines.append(line)
         return lines
 
@@ -34,12 +35,14 @@ def compare_databases(expected_cur, test_cur):
     :param test_cur: cursor for the database to be tested
     """
     expected_cur.execute(
-        "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';")
+        "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';"
+    )
     tables = expected_cur.fetchall()
 
     if len(tables) == 0:
         test_cur.execute(
-            "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';")
+            "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';"
+        )
         test_tables = test_cur.fetchall()
         assert len(test_tables) == 0
 
