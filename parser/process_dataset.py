@@ -113,9 +113,9 @@ def parse_arguments():
     parser.add_argument(
         "-t",
         "--temp",
-        action="store_true",
         help="Temp folder to download data files into or to create temp sqlite DB in."
         "(default: system temp directory)",
+        type=str,
     )
     parser.add_argument(
         "-n",
@@ -281,7 +281,7 @@ def sequences_and_residue_pairs(filepath, tmpdir):
                 """SELECT group_concat(si.id) as match_ids, group_concat(u.identification_file_name) as files,
             pe1.dbsequence_id as prot1, dbs1.accession as prot1_acc, (pe1.pep_start + mp1.link_site1 - 1) as pos1,
             pe2.dbsequence_id as prot2, dbs2.accession as prot2_acc, (pe2.pep_start + mp2.link_site1 - 1) as pos2,
-			coalesce (mp1.crosslinker_accession, mp2.crosslinker_accession) as crosslinker_accession
+			coalesce (mp1.mod_accessions, mp2.mod_accessions) as mod_accs
             FROM match si INNER JOIN
             modifiedpeptide mp1 ON si.upload_id = mp1.upload_id AND si.pep1_id = mp1.id INNER JOIN
             peptideevidence pe1 ON mp1.upload_id = pe1.upload_id AND  mp1.id = pe1.peptide_id INNER JOIN
