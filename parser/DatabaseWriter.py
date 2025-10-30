@@ -123,7 +123,10 @@ class DatabaseWriter(Writer):
             conn.commit()
 
     def write_other_info(
-        self, contains_crosslinks: bool, upload_warnings: list[str], upload_id: int
+        self,
+        contains_crosslinks: bool,
+        upload_warnings: list[str],
+        upload_id: int,
     ) -> None:
         """Update Upload row with remaining info.
 

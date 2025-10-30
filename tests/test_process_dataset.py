@@ -35,9 +35,7 @@ class TestParseArguments:
 
     def test_pxid_argument(self):
         """Test parsing with --pxid argument."""
-        with mock.patch(
-            "sys.argv", ["prog", "--pxid", "PXD012345"]
-        ):
+        with mock.patch("sys.argv", ["prog", "--pxid", "PXD012345"]):
             args = parse_arguments()
             assert args.pxid == ["PXD012345"]
             assert args.ftp is None
@@ -46,9 +44,7 @@ class TestParseArguments:
 
     def test_multiple_pxids(self):
         """Test parsing with multiple --pxid arguments."""
-        with mock.patch(
-            "sys.argv", ["prog", "-p", "PXD012345", "PXD067890"]
-        ):
+        with mock.patch("sys.argv", ["prog", "-p", "PXD012345", "PXD067890"]):
             args = parse_arguments()
             assert args.pxid == ["PXD012345", "PXD067890"]
 
@@ -64,9 +60,7 @@ class TestParseArguments:
 
     def test_dir_argument(self):
         """Test parsing with --dir argument."""
-        with mock.patch(
-            "sys.argv", ["prog", "--dir", "/path/to/data"]
-        ):
+        with mock.patch("sys.argv", ["prog", "--dir", "/path/to/data"]):
             args = parse_arguments()
             assert args.dir == "/path/to/data"
             assert args.pxid is None
@@ -209,9 +203,7 @@ class TestHelperFunctions:
     def test_create_temp_database_strips_extension(self):
         """Test _create_temp_database strips file extension."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            conn_str = _create_temp_database(
-                temp_dir, "my_file.mzid.gz"
-            )
+            conn_str = _create_temp_database(temp_dir, "my_file.mzid.gz")
             # Only strips the last extension (.gz), not .mzid
             expected_path = os.path.join(temp_dir, "my_file.mzid.db")
             assert conn_str == f"sqlite:///{expected_path}"
@@ -246,9 +238,7 @@ class TestValidateFile:
         """Test validation of a valid mzIdentML file."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Use nopeaklist=True since peaklist files aren't available
-            result = validate_file(
-                valid_mzid_file, temp_dir, nopeaklist=True
-            )
+            result = validate_file(valid_mzid_file, temp_dir, nopeaklist=True)
             assert result is True
 
             captured = capsys.readouterr()
@@ -257,9 +247,7 @@ class TestValidateFile:
     def test_validate_invalid_extension(self):
         """Test validation fails for non-.mzid file."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            with tempfile.NamedTemporaryFile(
-                suffix=".txt", delete=False
-            ) as f:
+            with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
                 temp_file = f.name
 
             try:
@@ -271,9 +259,7 @@ class TestValidateFile:
     def test_validate_with_nopeaklist(self, valid_mzid_file):
         """Test validation with nopeaklist=True."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = validate_file(
-                valid_mzid_file, temp_dir, nopeaklist=True
-            )
+            result = validate_file(valid_mzid_file, temp_dir, nopeaklist=True)
             assert result is True
 
 
@@ -293,9 +279,7 @@ class TestValidateFunction:
         # Cleanup
         shutil.rmtree(temp_dir)
 
-    def test_validate_directory_success(
-        self, temp_valid_mzid_dir, capsys
-    ):
+    def test_validate_directory_success(self, temp_valid_mzid_dir, capsys):
         """Test validation of a directory with valid files."""
         with tempfile.TemporaryDirectory() as temp_dir:
             with pytest.raises(SystemExit) as exc_info:
@@ -337,12 +321,8 @@ class TestProcessWrappers:
             )
 
             assert mock_convert.call_count == 2
-            mock_convert.assert_any_call(
-                "PXD012345", "/tmp", "db", False
-            )
-            mock_convert.assert_any_call(
-                "PXD067890", "/tmp", "db", False
-            )
+            mock_convert.assert_any_call("PXD012345", "/tmp", "db", False)
+            mock_convert.assert_any_call("PXD067890", "/tmp", "db", False)
 
     def test_process_ftp_with_identifier(self):
         """Test process_ftp wrapper with identifier."""
@@ -388,9 +368,7 @@ class TestProcessWrappers:
 
     def test_process_dir_with_identifier(self):
         """Test process_dir wrapper with identifier."""
-        with mock.patch(
-            "parser.process_dataset.convert_dir"
-        ) as mock_convert:
+        with mock.patch("parser.process_dataset.convert_dir") as mock_convert:
             process_dir(
                 "/path/to/data",
                 "MyDataset",
@@ -407,12 +385,8 @@ class TestProcessWrappers:
 
     def test_process_dir_without_identifier(self):
         """Test process_dir extracts identifier from path."""
-        with mock.patch(
-            "parser.process_dataset.convert_dir"
-        ) as mock_convert:
-            process_dir(
-                "/path/to/DATASET123", None, "db", nopeaklist=True
-            )
+        with mock.patch("parser.process_dataset.convert_dir") as mock_convert:
+            process_dir("/path/to/DATASET123", None, "db", nopeaklist=True)
 
             mock_convert.assert_called_once_with(
                 "/path/to/DATASET123",
@@ -430,14 +404,10 @@ class TestSequencesAndResiduePairs:
         """Path to a valid mzIdentML file."""
         return str(FIXTURES_DIR / "mgf_ecoli_dsso.mzid")
 
-    def test_sequences_and_residue_pairs_file(
-        self, valid_mzid_file
-    ):
+    def test_sequences_and_residue_pairs_file(self, valid_mzid_file):
         """Test sequences_and_residue_pairs with single file."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = sequences_and_residue_pairs(
-                valid_mzid_file, temp_dir
-            )
+            result = sequences_and_residue_pairs(valid_mzid_file, temp_dir)
 
             assert isinstance(result, dict)
             assert "sequences" in result
@@ -461,22 +431,14 @@ class TestSequencesAndResiduePairs:
     def test_sequences_and_residue_pairs_invalid_file(self):
         """Test with invalid file path."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            with pytest.raises(
-                ValueError, match="Invalid file or directory"
-            ):
-                sequences_and_residue_pairs(
-                    "/nonexistent/file.txt", temp_dir
-                )
+            with pytest.raises(ValueError, match="Invalid file or directory"):
+                sequences_and_residue_pairs("/nonexistent/file.txt", temp_dir)
 
     def test_sequences_and_residue_pairs_invalid_path(self):
         """Test with invalid path."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            with pytest.raises(
-                ValueError, match="Invalid file or directory"
-            ):
-                sequences_and_residue_pairs(
-                    "/nonexistent/path", temp_dir
-                )
+            with pytest.raises(ValueError, match="Invalid file or directory"):
+                sequences_and_residue_pairs("/nonexistent/path", temp_dir)
 
 
 class TestNetworkFunctions:
@@ -491,7 +453,7 @@ class TestNetworkFunctions:
                 "publicFileLocations": [
                     {
                         "name": "FTP Protocol",
-                        "value": "ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/01/PXD012345/file.mzid"
+                        "value": "ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/01/PXD012345/file.mzid",
                     }
                 ]
             }
@@ -501,8 +463,12 @@ class TestNetworkFunctions:
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = mock_response_data
 
-            with mock.patch("parser.process_dataset.convert_from_ftp") as mock_convert:
-                convert_pxd_accession_from_pride("PXD012345", "/tmp", "db", False)
+            with mock.patch(
+                "parser.process_dataset.convert_from_ftp"
+            ) as mock_convert:
+                convert_pxd_accession_from_pride(
+                    "PXD012345", "/tmp", "db", False
+                )
 
                 mock_get.assert_called_once()
                 assert "PXD012345" in mock_get.call_args[0][0]
@@ -515,8 +481,12 @@ class TestNetworkFunctions:
         with mock.patch("requests.get") as mock_get:
             mock_get.return_value.status_code = 404
 
-            with pytest.raises(ValueError, match="PRIDE API returned status code 404"):
-                convert_pxd_accession_from_pride("PXD012345", "/tmp", "db", False)
+            with pytest.raises(
+                ValueError, match="PRIDE API returned status code 404"
+            ):
+                convert_pxd_accession_from_pride(
+                    "PXD012345", "/tmp", "db", False
+                )
 
     def test_convert_pxd_accession_from_pride_no_ftp_location(self):
         """Test convert_pxd_accession_from_pride with no FTP location."""
@@ -528,14 +498,20 @@ class TestNetworkFunctions:
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = mock_response_data
 
-            with pytest.raises(ValueError, match="Public File location not found"):
-                convert_pxd_accession_from_pride("PXD012345", "/tmp", "db", False)
+            with pytest.raises(
+                ValueError, match="Public File location not found"
+            ):
+                convert_pxd_accession_from_pride(
+                    "PXD012345", "/tmp", "db", False
+                )
 
     def test_convert_from_ftp_invalid_url(self):
         """Test convert_from_ftp with invalid URL."""
         from parser.process_dataset import convert_from_ftp
 
-        with pytest.raises(ValueError, match="FTP location must start with ftp://"):
+        with pytest.raises(
+            ValueError, match="FTP location must start with ftp://"
+        ):
             convert_from_ftp("http://example.com", "/tmp", "test", "db", False)
 
     def test_get_ftp_file_list(self):
@@ -589,10 +565,15 @@ class TestNetworkFunctions:
             test_mzid = os.path.join(temp_dir, "test.mzid")
             source_file = str(FIXTURES_DIR / "mgf_ecoli_dsso.mzid")
             import shutil
+
             shutil.copy(source_file, test_mzid)
 
-            with mock.patch("parser.process_dataset.schema_validate") as mock_validate:
-                with mock.patch("parser.process_dataset.MzIdParser") as mock_parser:
+            with mock.patch(
+                "parser.process_dataset.schema_validate"
+            ) as mock_validate:
+                with mock.patch(
+                    "parser.process_dataset.MzIdParser"
+                ) as mock_parser:
                     mock_validate.return_value = True
                     mock_parser_instance = mock.Mock()
                     mock_parser.return_value = mock_parser_instance
@@ -620,9 +601,7 @@ class TestMainFunction:
     def test_main_with_validate(self):
         """Test main function with validate argument."""
         valid_file = str(FIXTURES_DIR / "mgf_ecoli_dsso.mzid")
-        with mock.patch(
-            "sys.argv", ["prog", "-v", valid_file]
-        ):
+        with mock.patch("sys.argv", ["prog", "-v", valid_file]):
             with mock.patch("sys.exit") as mock_exit:
                 main()
                 # validate() calls sys.exit(0) on success
@@ -632,9 +611,7 @@ class TestMainFunction:
     def test_main_with_seqsandresiduepairs(self):
         """Test main function with seqsandresiduepairs."""
         valid_file = str(FIXTURES_DIR / "mgf_ecoli_dsso.mzid")
-        with tempfile.NamedTemporaryFile(
-            suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             output_file = f.name
 
         try:
@@ -664,15 +641,11 @@ class TestMainFunction:
 
     def test_main_error_handling(self):
         """Test main function error handling."""
-        with mock.patch(
-            "sys.argv", ["prog", "-p", "PXD012345"]
-        ):
+        with mock.patch("sys.argv", ["prog", "-p", "PXD012345"]):
             with mock.patch(
                 "parser.process_dataset.process_pxid"
             ) as mock_process:
-                mock_process.side_effect = Exception(
-                    "Test error"
-                )
+                mock_process.side_effect = Exception("Test error")
                 with mock.patch("sys.exit") as mock_exit:
                     main()
                     mock_exit.assert_called_once_with(1)

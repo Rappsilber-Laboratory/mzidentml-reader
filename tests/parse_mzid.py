@@ -21,9 +21,7 @@ def parse_mzid_into_postgresql(
     engine.dispose()
 
     # parse the mzid file
-    id_parser = MzIdParser.MzIdParser(
-        mzid_file, peaklist, writer, logger
-    )
+    id_parser = MzIdParser.MzIdParser(mzid_file, peaklist, writer, logger)
     id_parser.parse()
 
     # Dispose of the writer's engine to close database connections

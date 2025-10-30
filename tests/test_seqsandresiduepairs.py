@@ -142,7 +142,9 @@ class TestSequencesAndResiduePairsSingleFile:
         # Database should be deleted after processing
         assert not os.path.exists(temp_db_path)
 
-    def test_existing_temp_database_removed(self, test_dir_with_mzid, temp_dir):
+    def test_existing_temp_database_removed(
+        self, test_dir_with_mzid, temp_dir
+    ):
         """Test that existing temp database is removed before processing."""
         mzid_file = os.path.join(test_dir_with_mzid, "mgf_ecoli_dsso.mzid")
         db_name = "mgf_ecoli_dsso.db"
@@ -174,7 +176,9 @@ class TestSequencesAndResiduePairsSingleFile:
         assert isinstance(result["sequences"], list)
         assert isinstance(result["residue_pairs"], list)
 
-    def test_only_passing_threshold_matches(self, test_dir_with_mzid, temp_dir):
+    def test_only_passing_threshold_matches(
+        self, test_dir_with_mzid, temp_dir
+    ):
         """Test that only matches passing threshold are included."""
         mzid_file = os.path.join(test_dir_with_mzid, "mgf_ecoli_dsso.mzid")
 
@@ -222,7 +226,9 @@ class TestSequencesAndResiduePairsDirectory:
             files_seen = set(seq["file"] for seq in result["sequences"])
             assert "mgf_ecoli_dsso.mzid" in files_seen
 
-    def test_directory_temp_database_cleanup(self, test_dir_with_mzid, temp_dir):
+    def test_directory_temp_database_cleanup(
+        self, test_dir_with_mzid, temp_dir
+    ):
         """Test that temp database is cleaned up after directory processing."""
         db_name = "test_data.db"
         temp_db_path = os.path.join(temp_dir, db_name)
@@ -257,7 +263,9 @@ class TestSequencesAndResiduePairsErrorHandling:
 class TestSequencesAndResiduePairsDataIntegrity:
     """Tests for data integrity of extracted sequences and residue pairs."""
 
-    def test_residue_pair_positions_positive(self, test_dir_with_mzid, temp_dir):
+    def test_residue_pair_positions_positive(
+        self, test_dir_with_mzid, temp_dir
+    ):
         """Test that residue pair positions are positive integers."""
         mzid_file = os.path.join(test_dir_with_mzid, "mgf_ecoli_dsso.mzid")
 
@@ -336,7 +344,9 @@ class TestSequencesAndResiduePairsSQL:
             assert key not in seen, "Duplicate sequence entry found"
             seen.add(key)
 
-    def test_residue_pairs_grouped_correctly(self, test_dir_with_mzid, temp_dir):
+    def test_residue_pairs_grouped_correctly(
+        self, test_dir_with_mzid, temp_dir
+    ):
         """Test that residue pairs are grouped by position combinations."""
         mzid_file = os.path.join(test_dir_with_mzid, "mgf_ecoli_dsso.mzid")
 

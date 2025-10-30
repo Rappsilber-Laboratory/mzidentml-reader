@@ -61,9 +61,7 @@ class APIWriter(Writer):
         else:
             return None
 
-    def write_new_upload(
-        self, table: str, data: dict[str, Any]
-    ) -> int | None:
+    def write_new_upload(self, table: str, data: dict[str, Any]) -> int | None:
         response = None
 
         try:
@@ -156,7 +154,10 @@ class APIWriter(Writer):
             return None
 
     def write_other_info(
-        self, contains_crosslinks: bool, upload_warnings: list[str], upload_id: int
+        self,
+        contains_crosslinks: bool,
+        upload_warnings: list[str],
+        upload_id: int,
     ) -> dict[str, Any] | None:
         """Update Upload row with remaining info.
 

@@ -30,17 +30,17 @@ class TestSchemaValidate:
 
     def test_valid_mzid_1_2_0(self, valid_1_2_0_file):
         """Test validation of a valid mzIdentML 1.2.0 file."""
-        assert os.path.exists(valid_1_2_0_file), (
-            f"Test fixture not found: {valid_1_2_0_file}"
-        )
+        assert os.path.exists(
+            valid_1_2_0_file
+        ), f"Test fixture not found: {valid_1_2_0_file}"
         result = schema_validate(valid_1_2_0_file)
         assert result is True
 
     def test_valid_mzid_1_3_0(self, valid_1_3_0_file):
         """Test validation of a valid mzIdentML 1.3.0 file."""
-        assert os.path.exists(valid_1_3_0_file), (
-            f"Test fixture not found: {valid_1_3_0_file}"
-        )
+        assert os.path.exists(
+            valid_1_3_0_file
+        ), f"Test fixture not found: {valid_1_3_0_file}"
         result = schema_validate(valid_1_3_0_file)
         assert result is True
 
@@ -73,7 +73,7 @@ class TestSchemaValidate:
             # Odd number of parts (invalid format)
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<MzIdentML '
+                "<MzIdentML "
                 'xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" '
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
                 'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 '
@@ -98,7 +98,7 @@ class TestSchemaValidate:
         ) as f:
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<MzIdentML '
+                "<MzIdentML "
                 'xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" '
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
                 'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 '
@@ -124,7 +124,7 @@ class TestSchemaValidate:
         ) as f:
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<MzIdentML '
+                "<MzIdentML "
                 'xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" '
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
                 'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 '
@@ -135,12 +135,8 @@ class TestSchemaValidate:
 
         try:
             # Mock the files() function to raise FileNotFoundError
-            with mock.patch(
-                "parser.schema_validate.files"
-            ) as mock_files:
-                mock_files.side_effect = FileNotFoundError(
-                    "Schema not found"
-                )
+            with mock.patch("parser.schema_validate.files") as mock_files:
+                mock_files.side_effect = FileNotFoundError("Schema not found")
                 result = schema_validate(temp_file)
                 assert result is False
 
@@ -157,11 +153,11 @@ class TestSchemaValidate:
             # Valid XML but missing required elements
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<MzIdentML '
+                "<MzIdentML "
                 'xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" '
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
                 'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 '
-                'https://www.psidev.info/sites/default/files/2018-10/'
+                "https://www.psidev.info/sites/default/files/2018-10/"
                 'mzIdentML1.2.0.xsd">\n'
                 "  <InvalidElement>Content</InvalidElement>\n"
                 "</MzIdentML>\n"
@@ -205,9 +201,9 @@ class TestSchemaValidate:
         ) as f:
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<MzIdentML '
+                "<MzIdentML "
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-                'xsi:noNamespaceSchemaLocation='
+                "xsi:noNamespaceSchemaLocation="
                 '"https://example.com/mzIdentML1.2.0.xsd">\n'
                 "</MzIdentML>\n"
             )

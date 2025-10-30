@@ -166,9 +166,13 @@ class PeakListWrapper:
                 os.makedirs(unzip_path, exist_ok=True)
                 base = os.path.abspath(unzip_path) + os.sep
                 for member in zip_ref.infolist():
-                    dest = os.path.abspath(os.path.join(unzip_path, member.filename))
+                    dest = os.path.abspath(
+                        os.path.join(unzip_path, member.filename)
+                    )
                     if not dest.startswith(base):
-                        raise Exception(f"Illegal path in zip: {member.filename}")
+                        raise Exception(
+                            f"Illegal path in zip: {member.filename}"
+                        )
                     zip_ref.extract(member, unzip_path)
             return unzip_path
 

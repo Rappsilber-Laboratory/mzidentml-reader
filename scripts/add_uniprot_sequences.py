@@ -27,10 +27,10 @@ def fetch_uniprot_sequence(accession):
     try:
         print(f"  Fetching {accession}...", end=" ")
         with urlopen(url) as response:
-            fasta_data = response.read().decode('utf-8')
+            fasta_data = response.read().decode("utf-8")
             # Parse FASTA format - skip header line, join sequence lines
-            lines = fasta_data.strip().split('\n')
-            sequence = ''.join(lines[1:])  # Skip first line (header)
+            lines = fasta_data.strip().split("\n")
+            sequence = "".join(lines[1:])  # Skip first line (header)
             print(f"OK ({len(sequence)} aa)")
             return sequence
     except HTTPError as e:
@@ -61,10 +61,10 @@ def update_mzidentml_file(filename, sequence_cache):
     root = tree.getroot()
 
     # Define namespace
-    ns = {'mzid': 'http://psidev.info/psi/pi/mzIdentML/1.2'}
+    ns = {"mzid": "http://psidev.info/psi/pi/mzIdentML/1.2"}
 
     # Find all DBSequence elements
-    dbsequences = root.findall('.//mzid:DBSequence', ns)
+    dbsequences = root.findall(".//mzid:DBSequence", ns)
     print(f"Found {len(dbsequences)} DBSequence elements")
 
     sequences_added = 0
@@ -72,14 +72,18 @@ def update_mzidentml_file(filename, sequence_cache):
     sequences_not_found = 0
 
     for dbseq in dbsequences:
-        accession = dbseq.get('accession')
+        accession = dbseq.get("accession")
 
         # Skip if not a protein accession (MS:, UNIMOD:, etc.)
-        if not accession or accession.startswith('MS:') or accession.startswith('UNIMOD'):
+        if (
+            not accession
+            or accession.startswith("MS:")
+            or accession.startswith("UNIMOD")
+        ):
             continue
 
         # Check if sequence already exists
-        existing_seq = dbseq.find('mzid:Seq', ns)
+        existing_seq = dbseq.find("mzid:Seq", ns)
         if existing_seq is not None:
             sequences_skipped += 1
             continue
@@ -97,7 +101,9 @@ def update_mzidentml_file(filename, sequence_cache):
 
         # Add Seq element
         sequence = sequence_cache[accession]
-        seq_elem = etree.Element('{http://psidev.info/psi/pi/mzIdentML/1.2}Seq')
+        seq_elem = etree.Element(
+            "{http://psidev.info/psi/pi/mzIdentML/1.2}Seq"
+        )
         seq_elem.text = sequence
 
         # Insert as first child element
@@ -105,7 +111,9 @@ def update_mzidentml_file(filename, sequence_cache):
         sequences_added += 1
 
     # Write back to file
-    tree.write(filename, encoding='UTF-8', xml_declaration=True, pretty_print=False)
+    tree.write(
+        filename, encoding="UTF-8", xml_declaration=True, pretty_print=False
+    )
 
     print(f"Summary:")
     print(f"  Sequences added: {sequences_added}")
@@ -121,8 +129,8 @@ def main():
 
     # Process both fixture files
     files = [
-        '../tests/fixtures/mzid_parser/F002553.mzid',
-        '../tests/fixtures/mzid_parser/F002553_samesets.mzid'
+        "../tests/fixtures/mzid_parser/F002553.mzid",
+        "../tests/fixtures/mzid_parser/F002553_samesets.mzid",
     ]
 
     for filename in files:
@@ -131,5 +139,5 @@ def main():
     print(f"\nDone! Total unique sequences cached: {len(sequence_cache)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

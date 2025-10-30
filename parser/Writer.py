@@ -15,7 +15,9 @@ class Writer(ABC):
         self.upload_id = upload_id
 
     @abstractmethod
-    def write_data(self, table: str, data: list[dict[str, Any]] | dict[str, Any]) -> None:
+    def write_data(
+        self, table: str, data: list[dict[str, Any]] | dict[str, Any]
+    ) -> None:
         """Insert data into table.
 
         Args:

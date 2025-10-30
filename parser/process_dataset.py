@@ -180,7 +180,12 @@ def parse_arguments() -> argparse.Namespace:
     return args
 
 
-def process_pxid(px_accessions: list[str], temp_dir: str, writer_method: str, dontdelete: bool) -> None:
+def process_pxid(
+    px_accessions: list[str],
+    temp_dir: str,
+    writer_method: str,
+    dontdelete: bool,
+) -> None:
     """Process ProteomeXchange accessions."""
     for px_accession in px_accessions:
         convert_pxd_accession_from_pride(
@@ -189,7 +194,11 @@ def process_pxid(px_accessions: list[str], temp_dir: str, writer_method: str, do
 
 
 def process_ftp(
-    ftp_url: str, temp_dir: str, project_identifier: str | None, writer_method: str, dontdelete: bool
+    ftp_url: str,
+    temp_dir: str,
+    project_identifier: str | None,
+    writer_method: str,
+    dontdelete: bool,
 ) -> None:
     """Process data from an FTP URL."""
     if not project_identifier:
@@ -199,7 +208,12 @@ def process_ftp(
     )
 
 
-def process_dir(local_dir: str, project_identifier: str | None, writer_method: str, nopeaklist: bool) -> None:
+def process_dir(
+    local_dir: str,
+    project_identifier: str | None,
+    writer_method: str,
+    nopeaklist: bool,
+) -> None:
     """Process data from a local directory."""
     if not project_identifier:
         project_identifier = local_dir.rsplit("/", 1)[-1]
@@ -384,7 +398,9 @@ def main() -> None:
         sys.exit(1)
 
 
-def convert_pxd_accession(px_accession: str, temp_dir: str, writer_method: str, dontdelete: bool) -> None:
+def convert_pxd_accession(
+    px_accession: str, temp_dir: str, writer_method: str, dontdelete: bool
+) -> None:
     """Get FTP location from ProteomeXchange and process dataset."""
     px_url = f"https://proteomecentral.proteomexchange.org/cgi/GetDataset?ID={px_accession}&outputMode=JSON"
     logger.info(f"GET request to ProteomeExchange: {px_url}")
@@ -454,7 +470,11 @@ def convert_pxd_accession_from_pride(
 
 
 def convert_from_ftp(
-    ftp_url: str, temp_dir: str, project_identifier: str, writer_method: str, dontdelete: bool
+    ftp_url: str,
+    temp_dir: str,
+    project_identifier: str,
+    writer_method: str,
+    dontdelete: bool,
 ) -> None:
     """Download and convert data from an FTP URL."""
     if not ftp_url.startswith("ftp://"):
@@ -531,7 +551,10 @@ def get_ftp_file_list(ftp_ip: str, ftp_dir: str) -> list[str]:
 
 
 def convert_dir(
-    local_dir: str, project_identifier: str, writer_method: str, nopeaklist: bool = False
+    local_dir: str,
+    project_identifier: str,
+    writer_method: str,
+    nopeaklist: bool = False,
 ) -> None:
     """Convert files in a local directory."""
     peaklist_dir = None if nopeaklist else local_dir
@@ -565,7 +588,9 @@ def convert_dir(
                 sys.exit(1)
 
 
-def validate_file(filepath: str, temp_dir: str, nopeaklist: bool = False) -> bool:
+def validate_file(
+    filepath: str, temp_dir: str, nopeaklist: bool = False
+) -> bool:
     """Validate mzIdentML file against 1.2.0 or 1.3.0 schema and check for other errors.
 
     Args:
@@ -620,7 +645,9 @@ def validate_file(filepath: str, temp_dir: str, nopeaklist: bool = False) -> boo
     return True
 
 
-def read_sequences_and_residue_pairs(filepath: str, upload_id: int, conn_str: str) -> None:
+def read_sequences_and_residue_pairs(
+    filepath: str, upload_id: int, conn_str: str
+) -> None:
     """Get sequences and residue pairs from mzIdentML files.
 
     Args:
@@ -629,9 +656,7 @@ def read_sequences_and_residue_pairs(filepath: str, upload_id: int, conn_str: st
         conn_str: Connection string for the SQLite database.
     """
     writer = DatabaseWriter(conn_str, upload_id, pxid="Validation")
-    id_parser = SqliteMzIdParser(
-        filepath, None, writer, logger
-    )
+    id_parser = SqliteMzIdParser(filepath, None, writer, logger)
     try:
         id_parser.parse()
     except Exception as e:
