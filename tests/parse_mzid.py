@@ -1,8 +1,8 @@
 import logging
-from typing import Any
-
 from parser import MzIdParser
 from parser.DatabaseWriter import DatabaseWriter
+from typing import Any
+
 from sqlalchemy import Engine
 
 

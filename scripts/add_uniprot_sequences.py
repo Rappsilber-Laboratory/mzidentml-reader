@@ -7,8 +7,9 @@ This updates DBSequence elements that are missing sequence data.
 import re
 import sys
 import time
-from urllib.request import urlopen
 from urllib.error import HTTPError
+from urllib.request import urlopen
+
 from lxml import etree
 
 

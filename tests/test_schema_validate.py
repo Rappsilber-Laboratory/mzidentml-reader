@@ -2,12 +2,11 @@
 
 import os
 import tempfile
+from parser.schema_validate import schema_validate
 from pathlib import Path
 from unittest import mock
 
 import pytest
-
-from parser.schema_validate import schema_validate
 
 # Get the absolute path to the tests directory
 TESTS_DIR = Path(__file__).parent

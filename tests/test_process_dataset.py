@@ -5,12 +5,6 @@ import json
 import os
 import sys
 import tempfile
-from pathlib import Path
-from unittest import mock
-
-import pytest
-from sqlalchemy import create_engine, text
-
 from parser.process_dataset import (
     _create_temp_database,
     _dispose_writer_engine,
@@ -24,6 +18,11 @@ from parser.process_dataset import (
     validate,
     validate_file,
 )
+from pathlib import Path
+from unittest import mock
+
+import pytest
+from sqlalchemy import create_engine, text
 
 # Get the absolute path to the tests directory
 TESTS_DIR = Path(__file__).parent
@@ -556,8 +555,8 @@ class TestNetworkFunctions:
 
     def test_get_ftp_file_list_no_files(self):
         """Test get_ftp_file_list with no files."""
-        from parser.process_dataset import get_ftp_file_list
         import ftplib
+        from parser.process_dataset import get_ftp_file_list
 
         with mock.patch("ftplib.FTP") as mock_ftp_class:
             mock_ftp = mock.Mock()

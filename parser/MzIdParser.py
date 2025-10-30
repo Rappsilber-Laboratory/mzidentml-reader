@@ -12,10 +12,10 @@ import re
 import struct
 import traceback
 import zipfile
-from typing import Any
 from parser.APIWriter import APIWriter
 from parser.peaklistReader.PeakListWrapper import PeakListWrapper
 from time import time
+from typing import Any
 
 import obonet
 from lxml import etree

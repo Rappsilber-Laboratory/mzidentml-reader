@@ -10,15 +10,14 @@ import logging
 import os
 import shutil
 import tempfile
-
-import orjson
-import pytest
-from sqlalchemy import create_engine
-
 from parser.process_dataset import (
     json_sequences_and_residue_pairs,
     sequences_and_residue_pairs,
 )
+
+import orjson
+import pytest
+from sqlalchemy import create_engine
 
 logging.basicConfig(
     level=logging.DEBUG,

@@ -28,8 +28,9 @@ def drop_db(connection_str: str) -> None:
     Args:
         connection_str: Database connection string
     """
-    from sqlalchemy import text
     import re
+
+    from sqlalchemy import text
 
     engine = create_engine(connection_str)
 
