@@ -23,7 +23,7 @@ def get_version(rel_path):
 
 setup(
     name="mzidentml-reader",
-    version="0.4.5",
+    version="0.4.6",
     description="mzidentml-reader uses pyteomics (https://pyteomics.readthedocs.io/en/latest/index.html) to "
     "parse mzIdentML files (v1.2.0) and extract crosslink information. Results are written to a "
     "relational database (PostgreSQL or SQLite) using sqlalchemy.",
@@ -31,7 +31,7 @@ setup(
     long_description=long_description,
     author="Colin Combe, Lars Kolbowski, Suresh Hewapathirana",
     license="'Apache 2.0",
-    url="https://github.com/PRIDE-Archive/xi-mzidentml-converter",
+    url="https://github.com/PRIDE-Archive/mzidentml-reader",
     packages=find_packages(),
     include_package_data=True,
     package_data={"config": ["logging.ini"], "schema": ["*.xsd"]},

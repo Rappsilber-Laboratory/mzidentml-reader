@@ -27,6 +27,10 @@ from sqlalchemy import create_engine, text
 # Import custom modules
 from config.config_parser import get_conn_str
 
+# FTP download exclusions
+SKIP_EXTENSIONS = (".raw", ".raw.gz", ".all.zip", ".csv", ".txt")
+SKIP_DIRS = ("generated",)
+
 try:
     # Access `logging.ini` as a resource inside the package
     with importlib.resources.path(
@@ -46,8 +50,38 @@ except FileNotFoundError:
     )
 
 
-def parse_arguments():
-    """Parses command-line arguments."""
+def _create_temp_database(temp_dir: str, filename: str) -> str:
+    """Create a temporary SQLite database.
+
+    Args:
+        temp_dir: Directory to create the temporary database in.
+        filename: Base filename (without extension) for the database file.
+
+    Returns:
+        SQLAlchemy connection string for the temporary database.
+    """
+    filewithoutext = os.path.splitext(filename)[0]
+    temp_database = os.path.join(str(temp_dir), f"{filewithoutext}.db")
+
+    # Delete the temp database if it exists
+    if os.path.exists(temp_database):
+        os.remove(temp_database)
+
+    return f"sqlite:///{temp_database}"
+
+
+def _dispose_writer_engine(writer) -> None:
+    """Dispose of the writer's database engine to close connections.
+
+    Args:
+        writer: Writer instance that may have an engine attribute.
+    """
+    if hasattr(writer, "engine"):
+        writer.engine.dispose()
+
+
+def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Process mzIdentML files in a dataset and load them into a relational database."
     )
@@ -85,8 +119,7 @@ def parse_arguments():
         "--seqsandresiduepairs",
         help="Output JSON with sequences and residue pairs,"
         "if argument is directory all MzIdentmL files in it will be read. "
-        "If --temp option is given then the temp folder will be used for the sqlite DB file, "
-        "otherwise an in-memory sqlite DB will be used. ",
+        "If --temp option is given then the temp folder will be used for the sqlite DB file.",
         type=str,
     )
 
@@ -103,7 +136,7 @@ def parse_arguments():
         "--identifier",
         help="Identifier to use for dataset (if providing "
         "proteomeXchange accession these are always used instead and this arg is ignored),"
-        "if provbiding directory then default is the directory name",
+        "if providing directory then default is the directory name",
     )
     parser.add_argument(
         "--dontdelete",
@@ -120,18 +153,40 @@ def parse_arguments():
     parser.add_argument(
         "-n",
         "--nopeaklist",
-        help="No peak list files available, only works in combination with --dir arg",
+        help="No peak list files available, works with --dir and --validate "
+        "(not supported with --pxid or --ftp)",
         action="store_true",
     )
     parser.add_argument(
         "-w", "--writer", help="Save data to database(-w db) or API(-w api)"
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Validate that -j/--json is provided when using --seqsandresiduepairs
+    if args.seqsandresiduepairs and not args.json:
+        parser.error(
+            "The -j/--json argument is required when using "
+            "--seqsandresiduepairs"
+        )
+
+    # Validate writer argument only if it's going to be used
+    if (args.pxid or args.ftp or args.dir) and args.writer:
+        if args.writer.lower() not in {"api", "db"}:
+            parser.error(
+                'Writer method not supported! Please use "api" or "db".'
+            )
+
+    return args
 
 
-def process_pxid(px_accessions, temp_dir, writer_method, dontdelete):
-    """Processes ProteomeXchange accessions."""
+def process_pxid(
+    px_accessions: list[str],
+    temp_dir: str,
+    writer_method: str,
+    dontdelete: bool,
+) -> None:
+    """Process ProteomeXchange accessions."""
     for px_accession in px_accessions:
         convert_pxd_accession_from_pride(
             px_accession, temp_dir, writer_method, dontdelete
@@ -139,9 +194,13 @@ def process_pxid(px_accessions, temp_dir, writer_method, dontdelete):
 
 
 def process_ftp(
-    ftp_url, temp_dir, project_identifier, writer_method, dontdelete
-):
-    """Processes data from an FTP URL."""
+    ftp_url: str,
+    temp_dir: str,
+    project_identifier: str | None,
+    writer_method: str,
+    dontdelete: bool,
+) -> None:
+    """Process data from an FTP URL."""
     if not project_identifier:
         project_identifier = urlparse(ftp_url).path.rsplit("/", 1)[-1]
     convert_from_ftp(
@@ -149,8 +208,13 @@ def process_ftp(
     )
 
 
-def process_dir(local_dir, project_identifier, writer_method, nopeaklist):
-    """Processes data from a local directory."""
+def process_dir(
+    local_dir: str,
+    project_identifier: str | None,
+    writer_method: str,
+    nopeaklist: bool,
+) -> None:
+    """Process data from a local directory."""
     if not project_identifier:
         project_identifier = local_dir.rsplit("/", 1)[-1]
     convert_dir(
@@ -158,18 +222,16 @@ def process_dir(local_dir, project_identifier, writer_method, nopeaklist):
     )
 
 
-def validate(validate_arg, tmpdir, nopeaklist):
-    """Validates mzIdentML files against the XSD schema, then checks for other errors.
-    This includes checking that Seq elements are present for target proteins,
-    even though omitting them is technically valid.
-    Prints out results.
-    :param validate_arg: str
-        The path to the mzIdentML file or directory to be validated.
-    :param tmpdir: str
-        The temporary directory to use for validation - an Sqlite DB is created here.
-    :param nopeaklist: bool
+def validate(validate_arg: str, temp_dir: str, nopeaklist: bool) -> None:
+    """Validate mzIdentML files against XSD schema and check for other errors.
 
-    :return: None
+    This includes checking that Seq elements are present for target proteins,
+    even though omitting them is technically valid. Prints results and exits.
+
+    Args:
+        validate_arg: Path to the mzIdentML file or directory to validate.
+        temp_dir: Temporary directory for validation (SQLite DB created here).
+        nopeaklist: If True, skip peaklist file validation.
     """
     if os.path.isdir(validate_arg):
         print(f"Validating directory: {validate_arg}")
@@ -177,7 +239,7 @@ def validate(validate_arg, tmpdir, nopeaklist):
             if file.endswith(".mzid"):
                 file_to_validate = os.path.join(validate_arg, file)
                 if validate_file(
-                    file_to_validate, tmpdir, nopeaklist=nopeaklist
+                    file_to_validate, temp_dir, nopeaklist=nopeaklist
                 ):
                     print(
                         f"Validation successful for file {file_to_validate}."
@@ -191,7 +253,7 @@ def validate(validate_arg, tmpdir, nopeaklist):
             f"SUCCESS! Directory {validate_arg} validation complete. Exciting."
         )
     else:
-        if not validate_file(validate_arg, tmpdir, nopeaklist=nopeaklist):
+        if not validate_file(validate_arg, temp_dir, nopeaklist=nopeaklist):
             print(f"Validation failed for file {validate_arg}. Exiting.")
             sys.exit(1)
         print(f"SUCCESS! File {validate_arg} validation complete. Exciting.")
@@ -199,48 +261,36 @@ def validate(validate_arg, tmpdir, nopeaklist):
     sys.exit(0)
 
 
-def json_sequences_and_residue_pairs(filepath, tmpdir):
-    """Returns json of sequences and residue pairs from mzIdentML files.
-    Parameters
-    ----------
-    filepath : str
-        The path to the mzIdentML file to be validated.
-    tmpdir : str
-        The temporary directory to use for validation - an Sqlite DB is created here if given,
-        otherwise an in-memory sqlite DB is used.
+def json_sequences_and_residue_pairs(filepath: str, temp_dir: str) -> bytes:
+    """Return JSON of sequences and residue pairs from mzIdentML files.
+
+    Args:
+        filepath: Path to the mzIdentML file or directory to process.
+        temp_dir: Temporary directory for SQLite DB (or default if not given).
+
+    Returns:
+        JSON-encoded bytes of sequences and residue pairs.
     """
-    return orjson.dumps(sequences_and_residue_pairs(filepath, tmpdir))
+    return orjson.dumps(sequences_and_residue_pairs(filepath, temp_dir))
 
 
-def sequences_and_residue_pairs(filepath, tmpdir):
-    """Prints json of sequences and residue pairs from mzIdentML files
-    Parameters
-    ----------
-    filepath : str
-        The path to the mzIdentML file to be validated.
-    tmpdir : str
-        The temporary directory to use for validation - an Sqlite DB is created here if given,
-        otherwise an in-memory sqlite DB is used.
+def sequences_and_residue_pairs(filepath: str, temp_dir: str) -> dict:
+    """Return sequences and residue pairs from mzIdentML files as a dictionary.
+
+    Args:
+        filepath: Path to the mzIdentML file or directory to process.
+        temp_dir: Temporary directory for the SQLite database.
+
+    Returns:
+        Dictionary with 'sequences' and 'residue_pairs' keys.
     """
     file = os.path.basename(filepath)
-    filewithoutext = os.path.splitext(file)[0]
-    temp_database = os.path.join(str(tmpdir), f"{filewithoutext}.db")
-
-    # tempdir is currently always set
-    # if tmpdir:
-    # delete the temp database if it exists
-    if os.path.exists(temp_database):
-        os.remove(temp_database)
-
-    conn_str = f"sqlite:///{temp_database}"
-    # else: # not working
-    #     conn_str = 'sqlite:///:memory:?cache=shared'
-
+    conn_str = _create_temp_database(temp_dir, file)
     engine = create_engine(conn_str)
 
     if os.path.isdir(filepath):
+        mzid_count = 0
         for file in os.listdir(filepath):
-            mzid_count = 0
             if file.endswith(".mzid"):
                 mzid_count += 1
                 file_to_process = os.path.join(filepath, file)
@@ -258,10 +308,9 @@ def sequences_and_residue_pairs(filepath, tmpdir):
         raise ValueError(f"Invalid file or directory path: {filepath}")
 
     with engine.connect() as conn:
-        try:
-            # get sequences
-            sql = text(
-                """
+        # get sequences
+        sql = text(
+            """
             SELECT dbseq.id, u.identification_file_name as file, dbseq.sequence, dbseq.accession
             FROM upload AS u
             JOIN dbsequence AS dbseq ON u.id = dbseq.upload_id
@@ -269,16 +318,15 @@ def sequences_and_residue_pairs(filepath, tmpdir):
             WHERE pe.is_decoy = false
             GROUP BY dbseq.id, dbseq.sequence, dbseq.accession, u.identification_file_name;
             """
-            )
-            rs = conn.execute(sql)
-            seq_rows = rs.mappings().all()
-            seq_rows = [dict(row) for row in seq_rows]
-            # seq_rows = rs.fetchall()
-            logging.info("Successfully fetched sequences")
+        )
+        rs = conn.execute(sql)
+        seq_rows = rs.mappings().all()
+        seq_rows = [dict(row) for row in seq_rows]
+        logging.info("Successfully fetched sequences")
 
-            # get residue pairs
-            sql = text(
-                """SELECT group_concat(si.id) as match_ids, group_concat(u.identification_file_name) as files,
+        # get residue pairs
+        sql = text(
+            """SELECT group_concat(si.id) as match_ids, group_concat(u.identification_file_name) as files,
             pe1.dbsequence_id as prot1, dbs1.accession as prot1_acc, (pe1.pep_start + mp1.link_site1 - 1) as pos1,
             pe2.dbsequence_id as prot2, dbs2.accession as prot2_acc, (pe2.pep_start + mp2.link_site1 - 1) as pos2,
 			coalesce (mp1.mod_accessions, mp2.mod_accessions) as mod_accs
@@ -295,25 +343,22 @@ def sequences_and_residue_pairs(filepath, tmpdir):
             GROUP BY pe1.dbsequence_id , dbs1.accession, pos1, pe2.dbsequence_id, dbs2.accession , pos2
             ORDER BY pe1.dbsequence_id , pos1, pe2.dbsequence_id, pos2
             ;"""
-            )
-            # note that using pos1 and pos2 in group by won't work in postgres
-            start_time = time.time()
-            rs = conn.execute(sql)
-            elapsed_time = time.time() - start_time
-            logging.info(f"residue pair SQL execution time: {elapsed_time}")
-            rp_rows = rs.mappings().all()
-            rp_rows = [dict(row) for row in rp_rows]
-            # rp_rows = rs.fetchall()
-        except Exception as error:
-            raise error
-        finally:
-            conn.close()
+        )
+        # note that using pos1 and pos2 in group by won't work in postgres
+        start_time = time.time()
+        rs = conn.execute(sql)
+        elapsed_time = time.time() - start_time
+        logging.info(f"residue pair SQL execution time: {elapsed_time}")
+        rp_rows = rs.mappings().all()
+        rp_rows = [dict(row) for row in rp_rows]
+    # Extract database path from connection string and remove it
+    temp_database = conn_str.replace("sqlite:///", "")
     os.remove(temp_database)
     return {"sequences": seq_rows, "residue_pairs": rp_rows}
 
 
-def main():
-    """Main function to execute script logic."""
+def main() -> None:
+    """Execute script logic based on command-line arguments."""
     args = parse_arguments()
     temp_dir = (
         os.path.expanduser(args.temp) if args.temp else tempfile.gettempdir()
@@ -321,10 +366,6 @@ def main():
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
 
-    if args.writer and args.writer.lower() not in {"api", "db"}:
-        raise ValueError(
-            'Writer method not supported! Please use "api" or "db".'
-        )
     writer_type = args.writer if args.writer else "db"
 
     try:
@@ -357,11 +398,13 @@ def main():
         sys.exit(1)
 
 
-def convert_pxd_accession(px_accession, temp_dir, writer_method, dontdelete):
-    """get ftp location from PX"""
+def convert_pxd_accession(
+    px_accession: str, temp_dir: str, writer_method: str, dontdelete: bool
+) -> None:
+    """Get FTP location from ProteomeXchange and process dataset."""
     px_url = f"https://proteomecentral.proteomexchange.org/cgi/GetDataset?ID={px_accession}&outputMode=JSON"
     logger.info(f"GET request to ProteomeExchange: {px_url}")
-    px_response = requests.get(px_url)
+    px_response = requests.get(px_url, timeout=30)
 
     if px_response.status_code == 200:
         logger.info("ProteomeExchange returned status code 200")
@@ -379,22 +422,22 @@ def convert_pxd_accession(px_accession, temp_dir, writer_method, dontdelete):
                 )
                 break
         if not ftp_url:
-            raise Exception(
-                "Error: Dataset FTP location not found in ProteomeXchange response"
+            raise ValueError(
+                "Dataset FTP location not found in ProteomeXchange response"
             )
     else:
-        raise Exception(
-            f"Error: ProteomeXchange returned status code {px_response.status_code}"
+        raise ValueError(
+            f"ProteomeXchange returned status code {px_response.status_code}"
         )
 
 
 def convert_pxd_accession_from_pride(
-    px_accession, temp_dir, writer_method, dontdelete
-):
-    """get ftp location from PRIDE API"""
+    px_accession: str, temp_dir: str, writer_method: str, dontdelete: bool
+) -> None:
+    """Get FTP location from PRIDE API and process dataset."""
     px_url = f"https://www.ebi.ac.uk/pride/ws/archive/v3/projects/{px_accession}/files"
     logger.info(f"GET request to PRIDE API: {px_url}")
-    pride_response = requests.get(px_url)
+    pride_response = requests.get(px_url, timeout=30)
 
     if pride_response.status_code == 200:
         logger.info("PRIDE API returned status code 200")
@@ -417,21 +460,25 @@ def convert_pxd_accession_from_pride(
                 ftp_url, temp_dir, px_accession, writer_method, dontdelete
             )
         else:
-            raise Exception(
-                "Error: Public File location not found in PRIDE API response"
+            raise ValueError(
+                "Public File location not found in PRIDE API response"
             )
     else:
-        raise Exception(
-            f"Error: PRIDE API returned status code {pride_response.status_code}"
+        raise ValueError(
+            f"PRIDE API returned status code {pride_response.status_code}"
         )
 
 
 def convert_from_ftp(
-    ftp_url, temp_dir, project_identifier, writer_method, dontdelete
-):
-    """Downloads and converts data from an FTP URL."""
+    ftp_url: str,
+    temp_dir: str,
+    project_identifier: str,
+    writer_method: str,
+    dontdelete: bool,
+) -> None:
+    """Download and convert data from an FTP URL."""
     if not ftp_url.startswith("ftp://"):
-        raise Exception("Error: FTP location must start with ftp://")
+        raise ValueError("FTP location must start with ftp://")
 
     # Create temp directory if not exists
     os.makedirs(temp_dir, exist_ok=True)
@@ -443,14 +490,11 @@ def convert_from_ftp(
     ftp_ip = socket.getaddrinfo(urlparse(ftp_url).hostname, 21)[0][4][0]
     files = get_ftp_file_list(ftp_ip, urlparse(ftp_url).path)
     for f in files:
+        f_lower = f.lower()
         if not (
             os.path.isfile(os.path.join(str(path), f))
-            or f.lower() == "generated"  # skip directories that break ftp
-            or f.lower().endswith("raw")
-            or f.lower().endswith("raw.gz")
-            or f.lower().endswith("all.zip")
-            or f.lower().endswith("csv")
-            or f.lower().endswith("txt")
+            or f_lower in SKIP_DIRS
+            or f_lower.endswith(SKIP_EXTENSIONS)
         ):
             logger.info(f"Downloading {f} to {path}")
             ftp = get_ftp_login(ftp_ip)
@@ -473,8 +517,8 @@ def convert_from_ftp(
             raise e
 
 
-def get_ftp_login(ftp_ip):
-    """Logs in to an FTP server."""
+def get_ftp_login(ftp_ip: str) -> ftplib.FTP:
+    """Log in to an FTP server."""
     time.sleep(10)  # Delay to avoid rate limiting
     try:
         ftp = ftplib.FTP(ftp_ip)
@@ -485,8 +529,8 @@ def get_ftp_login(ftp_ip):
         raise e
 
 
-def get_ftp_file_list(ftp_ip, ftp_dir):
-    """Gets a list of files from an FTP directory."""
+def get_ftp_file_list(ftp_ip: str, ftp_dir: str) -> list[str]:
+    """Get a list of files from an FTP directory."""
     ftp = get_ftp_login(ftp_ip)
     try:
         ftp.cwd(ftp_dir)
@@ -507,9 +551,12 @@ def get_ftp_file_list(ftp_ip, ftp_dir):
 
 
 def convert_dir(
-    local_dir, project_identifier, writer_method, nopeaklist=False
-):
-    """Converts files in a local directory."""
+    local_dir: str,
+    project_identifier: str,
+    writer_method: str,
+    nopeaklist: bool = False,
+) -> None:
+    """Convert files in a local directory."""
     peaklist_dir = None if nopeaklist else local_dir
     for file in os.listdir(local_dir):
         gc.collect()
@@ -523,7 +570,6 @@ def convert_dir(
             if schema_validate(os.path.join(local_dir, file)):
                 id_parser = MzIdParser(
                     os.path.join(local_dir, file),
-                    local_dir,
                     peaklist_dir,
                     writer,
                     logger,
@@ -536,28 +582,23 @@ def convert_dir(
                     logger.exception(e)
                     raise e
                 finally:
-                    # Dispose of the writer's engine to close database connections
-                    if hasattr(writer, "engine"):
-                        writer.engine.dispose()
+                    _dispose_writer_engine(writer)
             else:
                 print(f"File {file} is schema invalid.")
                 sys.exit(1)
 
 
-def validate_file(filepath, tmpdir, nopeaklist=False):
-    """
-    Validates mzIdentML files against the 1.2.0 or 1.3.0 schema, then checks for some other errors.
+def validate_file(
+    filepath: str, temp_dir: str, nopeaklist: bool = False
+) -> bool:
+    """Validate mzIdentML file against 1.2.0 or 1.3.0 schema and check for other errors.
 
-    Parameters
-    ----------
-    filepath : str
-        The path to the mzIdentML file to be validated.
-    tmpdir : str
-        The temporary directory to use for validation - an Sqlite DB is created here.
+    Args:
+        filepath: Path to the mzIdentML file to validate.
+        temp_dir: Temporary directory for validation (SQLite DB created here).
+        nopeaklist: If True, skip peaklist file validation (default: False).
 
-    Returns
-    -------
-    bool
+    Returns:
         True if the file is valid, False otherwise.
     """
     print(f"Validating file {filepath}.")
@@ -572,13 +613,9 @@ def validate_file(filepath, tmpdir, nopeaklist=False):
     if schema_validate(filepath):
         print(f"File {filepath} is schema valid.")
 
-        filewithoutext = os.path.splitext(file)[0]
-        test_database = os.path.join(str(tmpdir), f"{filewithoutext}.db")
-        # delete the test database if it exists
-        if os.path.exists(test_database):
-            os.remove(test_database)
-        conn_str = f"sqlite:///{test_database}"
+        conn_str = _create_temp_database(temp_dir, file)
         engine = create_engine(conn_str)
+        test_database = conn_str.replace("sqlite:///", "")
 
         # switch on Foreign Key Enforcement
         with engine.connect() as conn:
@@ -587,7 +624,6 @@ def validate_file(filepath, tmpdir, nopeaklist=False):
         writer = DatabaseWriter(conn_str, upload_id=1, pxid="Validation")
         id_parser = SqliteMzIdParser(
             os.path.join(local_dir, file),
-            local_dir,
             peaklist_dir,
             writer,
             logger,
@@ -600,9 +636,7 @@ def validate_file(filepath, tmpdir, nopeaklist=False):
             print(e)
             return False
         finally:
-            # Dispose of the writer's engine to close database connections
-            if hasattr(writer, "engine"):
-                writer.engine.dispose()
+            _dispose_writer_engine(writer)
 
     else:
         print(f"File {filepath} is schema invalid.")
@@ -611,38 +645,25 @@ def validate_file(filepath, tmpdir, nopeaklist=False):
     return True
 
 
-def read_sequences_and_residue_pairs(filepath, upload_id, conn_str):
+def read_sequences_and_residue_pairs(
+    filepath: str, upload_id: int, conn_str: str
+) -> None:
+    """Get sequences and residue pairs from mzIdentML files.
+
+    Args:
+        filepath: Path to the mzIdentML file to process.
+        upload_id: Upload ID to use for sequences and residue pairs.
+        conn_str: Connection string for the SQLite database.
     """
-    get sequences and residue pairs from mzIdentML files
-
-    Parameters
-    ----------
-    filepath : str
-        The path to the mzIdentML file to be validated.
-    upload_id : int
-        The upload id to use for the sequences and residue pairs.
-    conn_str : str
-        The connection string to use for the sqlite database.
-
-    Returns
-    -------
-    None
-    """
-
-    local_dir = os.path.dirname(filepath)
     writer = DatabaseWriter(conn_str, upload_id, pxid="Validation")
-    id_parser = SqliteMzIdParser(
-        filepath, local_dir, local_dir, writer, logger
-    )
+    id_parser = SqliteMzIdParser(filepath, None, writer, logger)
     try:
         id_parser.parse()
     except Exception as e:
         print(f"Error parsing {filepath}")
         raise e
     finally:
-        # Dispose of the writer's engine to close database connections
-        if hasattr(writer, "engine"):
-            writer.engine.dispose()
+        _dispose_writer_engine(writer)
 
 
 if __name__ == "__main__":

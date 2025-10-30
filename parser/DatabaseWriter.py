@@ -2,6 +2,7 @@
 
 from parser.database.create_db_schema import create_schema
 from parser.Writer import Writer
+from typing import Any
 
 from sqlalchemy import MetaData, Table, create_engine
 from sqlalchemy_utils import database_exists
@@ -10,11 +11,18 @@ from sqlalchemy_utils import database_exists
 class DatabaseWriter(Writer):
     """Class for writing results to a relational database."""
 
-    def __init__(self, connection_str, upload_id=None, pxid=None):
-        """
-        Initialises the database connection and the writer in general.
+    def __init__(
+        self,
+        connection_str: str,
+        upload_id: int | None = None,
+        pxid: str | None = None,
+    ) -> None:
+        """Initialises the database connection and the writer in general.
 
-        :param connection_str: database connection string
+        Args:
+            connection_str: Database connection string
+            upload_id: Upload identifier
+            pxid: ProteomeXchange identifier
         """
         # Connection setup.
         # The 'engine' in SQLAlchemy is a Factory and connection pool to the database.
@@ -28,12 +36,14 @@ class DatabaseWriter(Writer):
         if not database_exists(self.engine.url):
             create_schema(self.engine.url)
 
-    def write_data(self, table, data):
-        """
-        Insert data into table.
+    def write_data(
+        self, table: str, data: list[dict[str, Any]] | dict[str, Any]
+    ) -> None:
+        """Insert data into table.
 
-        :param table: (str) Table name
-        :param data: (list dict) data to insert.
+        Args:
+            table: Table name
+            data: Data to insert (dict or list of dicts)
         """
         # print(data)
         if isinstance(data, dict):
@@ -51,12 +61,15 @@ class DatabaseWriter(Writer):
             conn.commit()
             conn.close()
 
-    def write_new_upload(self, table, data):
-        """
-        Insert data into upload table and return the id of the new row.
-        :param table:
-        :param data:
-        :return:
+    def write_new_upload(self, table: str, data: dict[str, Any]) -> int:
+        """Insert data into upload table and return the id of the new row.
+
+        Args:
+            table: Table name
+            data: Data to insert
+
+        Returns:
+            ID of the newly created row
         """
         table = Table(table, self.meta, autoload_with=self.engine, quote=False)
         with self.engine.connect() as conn:
@@ -70,24 +83,24 @@ class DatabaseWriter(Writer):
 
     def write_mzid_info(
         self,
-        analysis_software_list,
-        spectra_formats,
-        provider,
-        audits,
-        samples,
-        bib,
-        upload_id,
-    ):
-        """
-        Update Upload row with mzid info.
-        :param analysis_software_list: (list) List of analysis software used.
-        :param spectra_formats:
-        :param provider:
-        :param audits:
-        :param samples:
-        :param bib:
-        :param upload_id:
-        :return:
+        analysis_software_list: dict[str, Any],
+        spectra_formats: list[Any],
+        provider: dict[str, Any],
+        audits: dict[str, Any],
+        samples: dict[str, Any] | list[Any],
+        bib: list[Any],
+        upload_id: int,
+    ) -> None:
+        """Update Upload row with mzid info.
+
+        Args:
+            analysis_software_list: List of analysis software used
+            spectra_formats: List of spectra format information
+            provider: Provider information
+            audits: Audit collection information
+            samples: Analysis sample collection information
+            bib: Bibliographic references
+            upload_id: Upload identifier
         """
         upload = Table(
             "upload", self.meta, autoload_with=self.engine, quote=False
@@ -110,16 +123,19 @@ class DatabaseWriter(Writer):
             conn.commit()
 
     def write_other_info(
-        self, contains_crosslinks, upload_warnings, upload_id
-    ):
-        """
-        Update Upload row with remaining info.
+        self,
+        contains_crosslinks: bool,
+        upload_warnings: list[str],
+        upload_id: int,
+    ) -> None:
+        """Update Upload row with remaining info.
 
         ToDo: have this explicitly or create update func?
-        :param contains_crosslinks:
-        :param upload_warnings:
-        :param upload_id:
-        :return:
+
+        Args:
+            contains_crosslinks: Whether the upload contains crosslink data
+            upload_warnings: List of warning messages
+            upload_id: Upload identifier
         """
         upload = Table(
             "upload", self.meta, autoload_with=self.engine, quote=False
@@ -137,8 +153,6 @@ class DatabaseWriter(Writer):
             conn.execute(stmt)
             conn.commit()
 
-    def fill_in_missing_scores(self):
-        """
-        ToDo: this needs to be adapted to sqlalchemy from old SQLite version
-        """
+    def fill_in_missing_scores(self) -> None:
+        """ToDo: this needs to be adapted to sqlalchemy from old SQLite version."""
         pass

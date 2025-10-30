@@ -6,11 +6,16 @@ import re
 
 
 # noinspection PyUnusedLocal
-def get_db_sequence_dict(fasta_file_list):
-    """
-    Parse a FASTA file and return a dictionary of the sequences.
-    :param fasta_file_list:
-    :return: dict
+def get_db_sequence_dict(
+    fasta_file_list: list[str],
+) -> dict[str, list[str | None]]:
+    """Parse a FASTA file and return a dictionary of the sequences.
+
+    Args:
+        fasta_file_list: List of paths to FASTA files
+
+    Returns:
+        Dictionary mapping sequence identifiers to sequence data
     """
     db_sequence_dict = {}
     identifier = None
@@ -47,14 +52,19 @@ def get_db_sequence_dict(fasta_file_list):
     return db_sequence_dict
 
 
-def add_entry(identifier, sequence, description, seq_dict):
-    """
-    Add an entry to the sequence dictionary.
-    :param identifier:
-    :param sequence:
-    :param description:
-    :param seq_dict:
-    :return: None
+def add_entry(
+    identifier: str,
+    sequence: str,
+    description: str | None,
+    seq_dict: dict[str, list[str | None]],
+) -> None:
+    """Add an entry to the sequence dictionary.
+
+    Args:
+        identifier: Sequence identifier
+        sequence: Protein sequence
+        description: Sequence description
+        seq_dict: Dictionary to add the entry to
     """
     m = re.search(r"..\|(.*)\|(.*)\s?", identifier)
     # id = identifier

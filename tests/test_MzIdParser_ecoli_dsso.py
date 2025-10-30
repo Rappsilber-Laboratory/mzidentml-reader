@@ -433,7 +433,7 @@ def test_psql_db_cleared_each_test(use_database, engine):
     engine.dispose()
 
 
-def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
+def test_psql_mgf_mzid_parser(use_database, engine):
     # file paths
     fixtures_dir = os.path.join(
         os.path.dirname(__file__), "fixtures", "mzid_parser"
@@ -442,7 +442,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
     peak_list_folder = os.path.join(fixtures_dir, "peaklist")
 
     id_parser = parse_mzid_into_postgresql(
-        mzid, peak_list_folder, tmpdir, logger, use_database, engine
+        mzid, peak_list_folder, logger, use_database, engine
     )
 
     with engine.connect() as conn:
@@ -450,7 +450,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "dbsequence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -460,7 +460,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "searchmodification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -470,7 +470,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "enzyme",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -480,7 +480,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "peptideevidence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -490,7 +490,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "modifiedpeptide",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -503,7 +503,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "match",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -545,7 +545,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "spectrumidentificationprotocol",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -555,7 +555,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "analysiscollectionspectrumidentification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -565,7 +565,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "upload",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -617,7 +617,7 @@ def test_psql_mgf_mzid_parser(tmpdir, use_database, engine):
     engine.dispose()
 
 
-def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
+def test_psql_mzml_mzid_parser(use_database, engine):
     # file paths
     fixtures_dir = os.path.join(
         os.path.dirname(__file__), "fixtures", "mzid_parser"
@@ -626,7 +626,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
     peak_list_folder = os.path.join(fixtures_dir, "peaklist")
 
     id_parser = parse_mzid_into_postgresql(
-        mzid, peak_list_folder, tmpdir, logger, use_database, engine
+        mzid, peak_list_folder, logger, use_database, engine
     )
 
     with engine.connect() as conn:
@@ -634,7 +634,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "dbsequence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -644,7 +644,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "searchmodification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -654,7 +654,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "enzyme",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -664,7 +664,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "peptideevidence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -674,7 +674,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "modifiedpeptide",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -685,7 +685,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "spectrum",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1341,7 +1341,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "match",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1385,7 +1385,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "spectrumidentificationprotocol",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1395,7 +1395,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "analysiscollectionspectrumidentification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1405,7 +1405,7 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
         stmt = Table(
             "upload",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1459,7 +1459,6 @@ def test_psql_mzml_mzid_parser(tmpdir, use_database, engine):
     engine.dispose()
 
 
-# noinspection PyTestUnpassedFixture
 def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
     # file paths
     fixtures_dir = os.path.join(
@@ -1472,7 +1471,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
     conn_str = f"sqlite:///{test_database}"
     engine = create_engine(conn_str)
     id_parser = parse_mzid_into_sqlite_xispec(
-        mzid, peak_list_folder, tmpdir, logger, engine
+        mzid, peak_list_folder, logger, engine
     )
 
     with engine.connect() as conn:
@@ -1480,7 +1479,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "DBSequence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1490,7 +1489,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "SearchModification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1500,7 +1499,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Enzyme",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1510,7 +1509,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "PeptideEvidence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1520,7 +1519,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "ModifiedPeptide",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1533,7 +1532,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Match",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         conn.execute(stmt)
@@ -1542,7 +1541,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "SpectrumIdentificationProtocol",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1552,7 +1551,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "analysiscollectionspectrumidentification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1562,7 +1561,7 @@ def test_sqlite_mgf_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Upload",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1585,7 +1584,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
     engine = create_engine(conn_str)
 
     id_parser = parse_mzid_into_sqlite_xispec(
-        mzid, peak_list_folder, tmpdir, logger, engine
+        mzid, peak_list_folder, logger, engine
     )
 
     with engine.connect() as conn:
@@ -1593,7 +1592,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "DBSequence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1603,7 +1602,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "SearchModification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1613,7 +1612,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Enzyme",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1623,7 +1622,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "PeptideEvidence",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1633,7 +1632,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "ModifiedPeptide",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1643,7 +1642,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Spectrum",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         conn.execute(stmt)
@@ -1653,7 +1652,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Match",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         conn.execute(stmt)
@@ -1662,7 +1661,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "SpectrumIdentificationProtocol",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1672,7 +1671,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "analysiscollectionspectrumidentification",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)
@@ -1682,7 +1681,7 @@ def test_sqlite_mzml_xispec_mzid_parser(tmpdir):
         stmt = Table(
             "Upload",
             id_parser.writer.meta,
-            autoload_with=id_parser.writer.engine,
+            autoload_with=engine,
             quote=False,
         ).select()
         rs = conn.execute(stmt)

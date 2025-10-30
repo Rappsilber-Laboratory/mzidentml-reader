@@ -10,8 +10,10 @@ import re
 import tarfile
 import zipfile
 from abc import ABC, abstractmethod
+from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 from pyteomics import mgf, ms2, mzml
 
 
@@ -35,19 +37,23 @@ class ScanNotFoundException(Exception):
 
 
 class Spectrum:
-    """
-    A class to represent a spectrum.
-    """
+    """A class to represent a spectrum."""
 
-    def __init__(self, precursor, mz_array, int_array, rt=np.nan):
-        """
-        Initialise a Spectrum object.
+    def __init__(
+        self,
+        precursor: dict[str, float],
+        mz_array: NDArray[np.float64],
+        int_array: NDArray[np.float64],
+        rt: float = np.nan,
+    ) -> None:
+        """Initialise a Spectrum object.
 
-        :param precursor: (dict) Spectrum precursor information as dict.  e.g. {'mz':
-            102.234, 'charge': 2, 'intensity': 12654.35}
-        :param mz_array: (ndarray, dtype: float64) m/z values of the spectrum peaks
-        :param int_array: (ndarray, dtype: float64) intensity values of the spectrum peaks
-        :param rt: (str) Retention time in seconds (can be a range, e.g. 60-62)
+        Args:
+            precursor: Spectrum precursor information as dict.
+                e.g. {'mz': 102.234, 'charge': 2, 'intensity': 12654.35}
+            mz_array: m/z values of the spectrum peaks (ndarray, dtype: float64)
+            int_array: Intensity values of the spectrum peaks (ndarray, dtype: float64)
+            rt: Retention time in seconds (can be a range, e.g. 60-62)
         """
         self.precursor = precursor
         self.rt = rt
@@ -61,13 +67,14 @@ class Spectrum:
 
 
 class PeakListWrapper:
-    """
-    A class to wrap peak list files and provide an interface to access the spectra.
-    """
+    """A class to wrap peak list files and provide an interface to access the spectra."""
 
     def __init__(
-        self, pl_path, file_format_accession, spectrum_id_format_accession
-    ):
+        self,
+        pl_path: str,
+        file_format_accession: str,
+        spectrum_id_format_accession: str,
+    ) -> None:
         self.file_format_accession = file_format_accession
         self.spectrum_id_format_accession = spectrum_id_format_accession
         self.peak_list_path = pl_path
@@ -89,35 +96,43 @@ class PeakListWrapper:
             )
             raise PeakListParseError(message)
 
-    def __getitem__(self, spec_id):
+    def __getitem__(self, spec_id: str) -> Spectrum:
         """Return the spectrum depending on the FileFormat and SpectrumIdFormat."""
         return self.reader[spec_id]
 
-    def is_mgf(self):
-        """
-        Check if the peak list is in MGF format.
-        :return: bbol
+    def is_mgf(self) -> bool:
+        """Check if the peak list is in MGF format.
+
+        Returns:
+            True if the peak list is in MGF format
         """
         return self.file_format_accession == "MS:1001062"
 
-    def is_mzml(self):
-        """
-        Check if the peak list is in mzML format.
-        :return: bool
+    def is_mzml(self) -> bool:
+        """Check if the peak list is in mzML format.
+
+        Returns:
+            True if the peak list is in mzML format
         """
         return self.file_format_accession == "MS:1000584"
 
-    def is_ms2(self):
-        """
-        Check if the peak list is in MS2 format.
-        :return: bool
+    def is_ms2(self) -> bool:
+        """Check if the peak list is in MS2 format.
+
+        Returns:
+            True if the peak list is in MS2 format
         """
         return self.file_format_accession == "MS:1001466"
 
     @staticmethod
-    def extract_gz(in_file):
-        """
-        Extract gzipped file.
+    def extract_gz(in_file: str) -> str:
+        """Extract gzipped file.
+
+        Args:
+            in_file: Path to gzipped file
+
+        Returns:
+            Path to extracted file
         """
         if in_file.endswith(".gz"):
             in_f = gzip.open(in_file, "rb")
@@ -133,13 +148,15 @@ class PeakListWrapper:
             raise Exception(f"unsupported file extension for: {in_file}")
 
     @staticmethod
-    def unzip_peak_lists(zip_file, out_path="."):
-        """
-        Unzip and return resulting folder.
+    def unzip_peak_lists(zip_file: str, out_path: str = ".") -> str:
+        """Unzip and return resulting folder.
 
-        :param zip_file: path to archive to unzip
-        :param out_path: where to extract the files
-        :return: path to resulting folder
+        Args:
+            zip_file: Path to archive to unzip
+            out_path: Where to extract the files
+
+        Returns:
+            Path to resulting folder
         """
         if zip_file.endswith(".zip"):
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
@@ -149,9 +166,13 @@ class PeakListWrapper:
                 os.makedirs(unzip_path, exist_ok=True)
                 base = os.path.abspath(unzip_path) + os.sep
                 for member in zip_ref.infolist():
-                    dest = os.path.abspath(os.path.join(unzip_path, member.filename))
+                    dest = os.path.abspath(
+                        os.path.join(unzip_path, member.filename)
+                    )
                     if not dest.startswith(base):
-                        raise Exception(f"Illegal path in zip: {member.filename}")
+                        raise Exception(
+                            f"Illegal path in zip: {member.filename}"
+                        )
                     zip_ref.extract(member, unzip_path)
             return unzip_path
 
@@ -162,9 +183,11 @@ class PeakListWrapper:
 class SpectraReader(ABC):
     """Abstract Base Class for all SpectraReader."""
 
-    def __init__(self, spectrum_id_format_accession):
-        """
-        Initialize the SpectraReader.
+    def __init__(self, spectrum_id_format_accession: str) -> None:
+        """Initialize the SpectraReader.
+
+        Args:
+            spectrum_id_format_accession: Spectrum ID format accession
         """
         self._reader = None
         self.spectrum_id_format_accession = spectrum_id_format_accession
@@ -173,13 +196,18 @@ class SpectraReader(ABC):
         self.source_path = None
 
     @abstractmethod
-    def load(self, source, file_name=None, source_path=None):
-        """
-        Load the spectrum file.
+    def load(
+        self,
+        source: str | io.TextIOBase,
+        file_name: str | None = None,
+        source_path: str | None = None,
+    ) -> None:
+        """Load the spectrum file.
 
-        :param source: Spectra file source
-        :param file_name: (str) filename
-        :param source_path: (str) path to the source file (peak list file or archive)
+        Args:
+            source: Spectra file source
+            file_name: Filename
+            source_path: Path to the source file (peak list file or archive)
         """
         self._source = source
         if source_path is None:
@@ -198,12 +226,12 @@ class SpectraReader(ABC):
             self.file_name = file_name
 
     @abstractmethod
-    def __getitem__(self, spec_id):
+    def __getitem__(self, spec_id: str | int) -> Spectrum:
         """Return the spectrum depending on the SpectrumIdFormat."""
         ...
 
     @abstractmethod
-    def _convert_spectrum(self, spec):
+    def _convert_spectrum(self, spec: dict[str, Any]) -> Spectrum:
         """Convert the spectrum from the reader to a Spectrum object."""
         ...
 
@@ -211,10 +239,14 @@ class SpectraReader(ABC):
 class MGFReader(SpectraReader):
     """SpectraReader for MGF files."""
 
-    def __getitem__(self, spec_id):
-        """
-        Return the spectrum depending on the SpectrumIdFormat.
+    def __getitem__(self, spec_id: str | int) -> Spectrum:
+        """Return the spectrum depending on the SpectrumIdFormat.
 
+        Args:
+            spec_id: Spectrum identifier
+
+        Returns:
+            Spectrum object
         """
         # MS:1000774 multiple peak list nativeID format - zero based
         # index=xsd:nonNegativeInteger
@@ -255,18 +287,23 @@ class MGFReader(SpectraReader):
 
         return self._convert_spectrum(spec)
 
-    def load(self, source, file_name=None, source_path=None):
-        """
-        Load MGF file.
+    def load(
+        self,
+        source: str | io.TextIOBase,
+        file_name: str | None = None,
+        source_path: str | None = None,
+    ) -> None:
+        """Load MGF file.
 
-        :param source: file source, path or stream
-        :param file_name: (str) MGF filename
-        :param source_path: (str) path to the source file (MGF or archive)
+        Args:
+            source: File source, path or stream
+            file_name: MGF filename
+            source_path: Path to the source file (MGF or archive)
         """
         self._reader = mgf.read(source, use_index=True)
         super().load(source, file_name, source_path)
 
-    def _convert_spectrum(self, spec):
+    def _convert_spectrum(self, spec: dict[str, Any]) -> Spectrum:
         """Convert the spectrum from the reader to a Spectrum object."""
         precursor = {
             "mz": spec["params"]["pepmass"][0],
@@ -285,13 +322,17 @@ class MGFReader(SpectraReader):
 class MZMLReader(SpectraReader):
     """SpectraReader for mzML files."""
 
-    def __init__(self, spectrum_id_format_accession):
+    def __init__(self, spectrum_id_format_accession: str) -> None:
         super().__init__(spectrum_id_format_accession)
 
-    def __getitem__(self, spec_id):
-        """
-        Return the spectrum depending on the SpectrumIdFormat.
+    def __getitem__(self, spec_id: str) -> Spectrum:
+        """Return the spectrum depending on the SpectrumIdFormat.
 
+        Args:
+            spec_id: Spectrum identifier
+
+        Returns:
+            Spectrum object
         """
         # MS:1001530 mzML unique identifier:
         # Used for referencing mzML. The value of the spectrum ID attribute is referenced directly.
@@ -325,19 +366,24 @@ class MZMLReader(SpectraReader):
 
         return self._convert_spectrum(spec)
 
-    def load(self, source, file_name=None, source_path=None):
-        """
-        Read in spectra from an mzML file and stores them as Spectrum objects.
+    def load(
+        self,
+        source: str | io.TextIOBase,
+        file_name: str | None = None,
+        source_path: str | None = None,
+    ) -> None:
+        """Read in spectra from an mzML file and stores them as Spectrum objects.
 
-        :param source: file source, path or stream
-        :param file_name: (str) mzML filename
-        :param source_path: (str) path to the source file (mzML or archive)
+        Args:
+            source: File source, path or stream
+            file_name: mzML filename
+            source_path: Path to the source file (mzML or archive)
         """
 
         self._reader = mzml.read(source, use_index=True, huge_tree=True)
         super().load(source, file_name, source_path)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the reader."""
         if issubclass(type(self._source), tarfile.ExFileObject) or issubclass(
             type(self._source), zipfile.ZipExtFile
@@ -347,7 +393,7 @@ class MZMLReader(SpectraReader):
         else:
             self._reader.reset()
 
-    def _convert_spectrum(self, spec):
+    def _convert_spectrum(self, spec: dict[str, Any]) -> Spectrum:
 
         # check for single scan per spectrum
         if spec["scanList"]["count"] != 1:
@@ -390,7 +436,7 @@ class MZMLReader(SpectraReader):
 class MS2Reader(SpectraReader):
     """SpectraReader for MS2 files."""
 
-    def __getitem__(self, spec_id):
+    def __getitem__(self, spec_id: str | int) -> Spectrum:
         """Return the spectrum depending on the SpectrumIdFormat."""
         # MS:1000774 multiple peak list nativeID format - zero based
         if self.spectrum_id_format_accession == "MS:1000774":
@@ -431,20 +477,30 @@ class MS2Reader(SpectraReader):
             raise PeakListParseError(f"Spectrum with id {spec_id} not found!")
         return self._convert_spectrum(spec)
 
-    def load(self, source, file_name=None, source_path=None):
-        """
-        Load MS2 file.
+    def load(
+        self,
+        source: str | io.TextIOBase,
+        file_name: str | None = None,
+        source_path: str | None = None,
+    ) -> None:
+        """Load MS2 file.
 
-        :param source: file source, path or stream
-        :param file_name: (str) MS2 filename
-        :param source_path: (str) path to the source file (MS2 or archive)
+        Args:
+            source: File source, path or stream
+            file_name: MS2 filename
+            source_path: Path to the source file (MS2 or archive)
         """
         self._reader = MyMS2(source)
         super().load(source, file_name, source_path)
 
-    def _convert_spectrum(self, spec):
-        """
-        Convert spectrum to Spectrum object.
+    def _convert_spectrum(self, spec: dict[str, Any]) -> Spectrum:
+        """Convert spectrum to Spectrum object.
+
+        Args:
+            spec: Spectrum dictionary
+
+        Returns:
+            Spectrum object
         """
         if "PrecursorInt" in spec["params"]:
             precursor = {

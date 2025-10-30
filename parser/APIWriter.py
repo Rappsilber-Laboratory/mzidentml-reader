@@ -3,6 +3,7 @@
 import json
 import traceback
 from parser.Writer import Writer
+from typing import Any
 
 import requests
 
@@ -13,14 +14,18 @@ from config.config_parser import get_api_configs
 class APIWriter(Writer):
     """Class for writing results to a relational database."""
 
-    def __init__(self, upload_id=None, pxid=None):
+    def __init__(
+        self, upload_id: int | None = None, pxid: str | None = None
+    ) -> None:
         super().__init__(upload_id, pxid)
         configs = get_api_configs()
         self.base_url = configs["base_url"]
         self.api_key = configs["api_key"]
         self.api_key_value = configs["api_key_value"]
 
-    def write_data(self, table, data):
+    def write_data(
+        self, table: str, data: list[dict[str, Any]] | dict[str, Any]
+    ) -> dict[str, Any] | None:
         response = None
         try:
             API_ENDPOINT = self.base_url + "/write_data"
@@ -56,7 +61,7 @@ class APIWriter(Writer):
         else:
             return None
 
-    def write_new_upload(self, table, data):
+    def write_new_upload(self, table: str, data: dict[str, Any]) -> int | None:
         response = None
 
         try:
@@ -94,14 +99,14 @@ class APIWriter(Writer):
 
     def write_mzid_info(
         self,
-        analysis_software_list,
-        spectra_formats,
-        provider,
-        audits,
-        samples,
-        bib,
-        upload_id,
-    ):
+        analysis_software_list: dict[str, Any],
+        spectra_formats: list[Any],
+        provider: dict[str, Any],
+        audits: dict[str, Any],
+        samples: dict[str, Any] | list[Any],
+        bib: list[Any],
+        upload_id: int,
+    ) -> dict[str, Any] | None:
         response = None
         try:
             API_ENDPOINT = (
@@ -149,14 +154,20 @@ class APIWriter(Writer):
             return None
 
     def write_other_info(
-        self, contains_crosslinks, upload_warnings, upload_id
-    ):
-        """
-        Update Upload row with remaining info.
-        :param contains_crosslinks:
-        :param upload_warnings:
-        :param upload_id:
-        :return:
+        self,
+        contains_crosslinks: bool,
+        upload_warnings: list[str],
+        upload_id: int,
+    ) -> dict[str, Any] | None:
+        """Update Upload row with remaining info.
+
+        Args:
+            contains_crosslinks: Whether the upload contains crosslink data
+            upload_warnings: List of warning messages
+            upload_id: Upload identifier
+
+        Returns:
+            Response from API, or None if request failed
         """
         response = None
         try:
@@ -196,8 +207,6 @@ class APIWriter(Writer):
         else:
             return None
 
-    def fill_in_missing_scores(self):
-        """
-        ToDo: this needs to be adapted to sqlalchemy from old SQLite version
-        """
+    def fill_in_missing_scores(self) -> None:
+        """ToDo: this needs to be adapted to sqlalchemy from old SQLite version."""
         pass

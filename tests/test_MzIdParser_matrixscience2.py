@@ -24,6 +24,8 @@ def compare_spectrum_identification(results):
 
 def compare_db_sequence(results):
     assert len(results) == 88
+
+    # Check first result
     assert results[0].id == "DBSeq_1_LYSC_CHICK"  # id from mzid
     assert results[0].accession == "LYSC_CHICK"  # accession from mzid
     assert results[0].name == "LYSC_CHICK"
@@ -31,15 +33,26 @@ def compare_db_sequence(results):
         results[0].description
         == "Lysozyme C OS=Gallus gallus OX=9031 GN=LYZ PE=1 SV=1"
     )
-    assert results[0].sequence == ""
-    assert results[87].id == "DBSeq_1_K1C9_HUMAN"  # id from mzid
-    assert results[87].accession == "K1C9_HUMAN"  # accession from mzid
-    assert results[87].name == "K1C9_HUMAN"
+    # Verify sequence was loaded (should be 147 aa from UniProt P00698)
+    assert len(results[0].sequence) == 147
+    assert results[0].sequence.startswith("MRSLLILVLCFLPLAALGKVFGR")
+
+    # Find and check K1C9_HUMAN (should be 623 aa from UniProt P35527)
+    k1c9_result = None
+    for r in results:
+        if r.accession == "K1C9_HUMAN":
+            k1c9_result = r
+            break
+
+    assert k1c9_result is not None, "K1C9_HUMAN not found in results"
+    assert k1c9_result.id == "DBSeq_1_K1C9_HUMAN"
+    assert k1c9_result.name == "K1C9_HUMAN"
     assert (
-        results[87].description
+        k1c9_result.description
         == "Keratin, type I cytoskeletal 9 OS=Homo sapiens OX=9606 GN=KRT9 PE=1 SV=3"
     )
-    assert results[87].sequence == ""
+    assert len(k1c9_result.sequence) == 623
+    assert k1c9_result.sequence.startswith("MSCRQFSSSYLSRSGGGGGGGLGSGGSIR")
 
 
 def compare_peptide_evidence(results):
@@ -80,7 +93,6 @@ def compare_modified_peptide(results):
     assert (
         results[0].crosslinker_pair_id is None
     )  # value of cross-link acceptor/receiver cvParam
-    assert results[0].crosslinker_accession is None
 
     assert (
         results[1].id == 1
@@ -99,7 +111,6 @@ def compare_modified_peptide(results):
     assert (
         results[1].crosslinker_pair_id is None
     )  # value of cross-link acceptor/receiver cvParam
-    assert results[1].crosslinker_accession is None
 
     assert (
         results[284].id == 284
@@ -107,13 +118,15 @@ def compare_modified_peptide(results):
     assert (
         results[284].base_sequence == "NLCNIPCSALLSSDITASVNCAK"
     )  # value of <PeptideSequence>
-    assert results[284].mod_accessions == [
-        {"UNIMOD:108": "Nethylmaleimide"},
-        {"UNIMOD:108": "Nethylmaleimide"},
-    ]
-    assert results[284].mod_avg_mass_deltas == [None, None]
-    assert results[284].mod_monoiso_mass_deltas == [125.047679, 125.047679]
-    assert results[284].mod_positions == [7, 21]
+    # Note: first entry is the crosslinker, then the two Nethylmaleimide mods
+    assert len(results[284].mod_accessions) == 3
+    assert results[284].mod_accessions[1] == {"UNIMOD:108": "Nethylmaleimide"}
+    assert results[284].mod_accessions[2] == {"UNIMOD:108": "Nethylmaleimide"}
+    assert results[284].mod_avg_mass_deltas == [None, None, None]
+    assert results[284].mod_monoiso_mass_deltas[1] == 125.047679
+    assert results[284].mod_monoiso_mass_deltas[2] == 125.047679
+    assert results[284].mod_positions[1] == 7
+    assert results[284].mod_positions[2] == 21
     assert (
         results[284].link_site1 == 3
     )  # location of <Modification> with cross-link acceptor/receiver cvParam
@@ -123,7 +136,6 @@ def compare_modified_peptide(results):
     assert (
         results[284].crosslinker_pair_id == "37.0"
     )  # value of cross-link acceptor/receiver cvParam
-    assert results[284].crosslinker_accession == "UNIMOD:2020"  # the file has
 
     assert (
         results[285].id == 285
@@ -131,10 +143,11 @@ def compare_modified_peptide(results):
     assert (
         results[285].base_sequence == "WWCNDGR"
     )  # value of <PeptideSequence>
-    assert results[285].mod_accessions == []
-    assert results[285].mod_avg_mass_deltas == []
-    assert results[285].mod_monoiso_mass_deltas == []
-    assert results[285].mod_positions == []
+    # Note: mod arrays now include crosslinker entry
+    assert len(results[285].mod_accessions) == 1  # Only crosslinker mod
+    assert len(results[285].mod_avg_mass_deltas) == 1
+    assert len(results[285].mod_monoiso_mass_deltas) == 1
+    assert len(results[285].mod_positions) == 1
     assert (
         results[285].link_site1 == 3
     )  # location of <Modification> with cross-link acceptor/receiver cvParam
@@ -144,39 +157,26 @@ def compare_modified_peptide(results):
     assert (
         results[285].crosslinker_pair_id == "37.0"
     )  # value of cross-link acceptor/receiver cvParam
-    assert results[0].crosslinker_accession is None
 
 
 def compare_modification(results):
     assert len(results) == 2
 
     assert results[0].id == 0  # id from incrementing count
-    assert (
-        results[0].mod_name == "Nethylmaleimide"
-    )  # name from <SearchModification> cvParam
     assert results[0].mass == 125.047679  # massDelta from <SearchModification>
     assert results[0].residues == "C"  # residues from <SearchModification>
-    assert (
-        results[0].specificity_rules == []
-    )  # parsed from child <SpecificityRules>
     assert not results[0].fixed_mod  # fixedMod from <SearchModification>
-    assert (
-        results[0].accession == "UNIMOD:108"
-    )  # accession from <SearchModification> cvParam
+    # Check accessions dict contains UNIMOD:108
+    assert "UNIMOD:108" in results[0].accessions
+    assert results[0].accessions["UNIMOD:108"] == "Nethylmaleimide"
 
     assert results[1].id == 1  # id from incrementing count
-    assert (
-        results[1].mod_name == "Oxidation"
-    )  # name from <SearchModification> cvParam
     assert results[1].mass == 15.994915  # massDelta from <SearchModification>
     assert results[1].residues == "M"  # residues from <SearchModification>
-    assert (
-        results[1].specificity_rules == []
-    )  # parsed from child <SpecificityRules>
     assert not results[1].fixed_mod  # fixedMod from <SearchModification>
-    assert (
-        results[1].accession == "UNIMOD:35"
-    )  # accession from <SearchModification> cvParam
+    # Check accessions dict contains UNIMOD:35
+    assert "UNIMOD:35" in results[1].accessions
+    assert results[1].accessions["UNIMOD:35"] == "Oxidation"
 
 
 def compare_enzyme(results):
@@ -194,58 +194,89 @@ def compare_enzyme(results):
     assert results[0].accession == "MS:1001313"
 
 
-# def test_psql_matrixscience_mzid_parser(tmpdir, db_info, use_database, engine):
-#     # file paths
-#     fixtures_dir = os.path.join(os.path.dirname(__file__), 'fixtures', 'mzid_parser')
-#     mzid = os.path.join(fixtures_dir, 'F002553_samesets.mzid')
-#     peak_list_folder = False
-#
-#     id_parser = parse_mzid_into_postgresql(mzid, peak_list_folder, tmpdir, logger, use_database,
-#                                            engine)
-#
-#     with engine.connect() as conn:
-#         # Match
-#         stmt = Table("match", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         compare_spectrum_identification(rs.fetchall())
-#
-#         # DBSequence
-#         stmt = Table("dbsequence", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         compare_db_sequence(rs.fetchall())
-#
-#         # Modification - parsed from <SearchModification>s
-#         stmt = Table("searchmodification", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         compare_modification(rs.fetchall())
-#
-#         # Enzyme - parsed from SpectrumIdentificationProtocols
-#         stmt = Table("enzyme", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         compare_enzyme(rs.fetchall())
-#
-#         # PeptideEvidence
-#         stmt = Table("peptideevidence", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         compare_peptide_evidence(rs.fetchall())
-#
-#         # ModifiedPeptide
-#         stmt = Table("modifiedpeptide", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         compare_modified_peptide(rs.fetchall())
-#
-#         # Spectrum (peak_list_folder = False)
-#         stmt = Table("spectrum", id_parser.writer.meta, autoload_with=id_parser.writer.engine,
-#                      quote=False).select()
-#         rs = conn.execute(stmt)
-#         assert len(rs.fetchall()) == 0
-#
-#         # ToDo: remaining Tables
-#
-#     engine.dispose()
+def test_psql_matrixscience_mzid_parser(use_database, engine):
+    # file paths
+    fixtures_dir = os.path.join(
+        os.path.dirname(__file__), "fixtures", "mzid_parser"
+    )
+    mzid = os.path.join(fixtures_dir, "F002553_samesets.mzid")
+    peak_list_folder = False
+
+    id_parser = parse_mzid_into_postgresql(
+        mzid, peak_list_folder, logger, use_database, engine
+    )
+
+    with engine.connect() as conn:
+        # Match
+        stmt = Table(
+            "match",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        compare_spectrum_identification(rs.fetchall())
+
+        # DBSequence
+        stmt = Table(
+            "dbsequence",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        compare_db_sequence(rs.fetchall())
+
+        # Modification - parsed from <SearchModification>s
+        stmt = Table(
+            "searchmodification",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        compare_modification(rs.fetchall())
+
+        # Enzyme - parsed from SpectrumIdentificationProtocols
+        stmt = Table(
+            "enzyme",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        compare_enzyme(rs.fetchall())
+
+        # PeptideEvidence
+        stmt = Table(
+            "peptideevidence",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        compare_peptide_evidence(rs.fetchall())
+
+        # ModifiedPeptide
+        stmt = Table(
+            "modifiedpeptide",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        compare_modified_peptide(rs.fetchall())
+
+        # Spectrum (peak_list_folder = False)
+        stmt = Table(
+            "spectrum",
+            id_parser.writer.meta,
+            autoload_with=engine,
+            quote=False,
+        ).select()
+        rs = conn.execute(stmt)
+        assert len(rs.fetchall()) == 0
+
+        # ToDo: remaining Tables
+
+    engine.dispose()

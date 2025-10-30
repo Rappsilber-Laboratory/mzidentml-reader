@@ -11,25 +11,26 @@ from models import *
 from models.base import Base
 
 
-def create_db(connection_str):
-    """
-    Create a database if it doesn't exist.
-    :param connection_str:
-    :return: None
+def create_db(connection_str: str) -> None:
+    """Create a database if it doesn't exist.
+
+    Args:
+        connection_str: Database connection string
     """
     engine = create_engine(connection_str)
     if not database_exists(engine.url):
         create_database(engine.url)
 
 
-def drop_db(connection_str):
+def drop_db(connection_str: str) -> None:
+    """Drop a database if it exists.
+
+    Args:
+        connection_str: Database connection string
     """
-    Drop a database if it exists.
-    :param connection_str:
-    :return: None
-    """
-    from sqlalchemy import text
     import re
+
+    from sqlalchemy import text
 
     engine = create_engine(connection_str)
 
@@ -70,11 +71,11 @@ def drop_db(connection_str):
         engine.dispose()
 
 
-def create_schema(connection_str):
-    """
-    Create schema for the database.
-    :param connection_str:
-    :return: None
+def create_schema(connection_str: str) -> None:
+    """Create schema for the database.
+
+    Args:
+        connection_str: Database connection string
     """
     engine = create_engine(connection_str)  # , echo=True)
     Base.metadata.create_all(engine)

@@ -6,12 +6,15 @@ import os
 from configparser import ConfigParser
 
 
-def parse_config(filename, section="postgresql"):
-    """
-    Parse database.ini file
-    :param filename:
-    :param section:
-    :return:
+def parse_config(filename: str, section: str = "postgresql") -> dict[str, str]:
+    """Parse database.ini file.
+
+    Args:
+        filename: Path to the configuration file
+        section: Section name to parse
+
+    Returns:
+        Dictionary of configuration parameters
     """
     # create a parser
     parser = ConfigParser()
@@ -19,7 +22,7 @@ def parse_config(filename, section="postgresql"):
     parser.read(filename)
 
     # get section, default to postgresql
-    configs = {}
+    configs: dict[str, str] = {}
     if parser.has_section(section):
         params = parser.items(section)
         for param in params:
@@ -31,9 +34,11 @@ def parse_config(filename, section="postgresql"):
     return configs
 
 
-def get_conn_str():
-    """
-    Get database related configurations
+def get_conn_str() -> str:
+    """Get database related configurations.
+
+    Returns:
+        Database connection string
     """
     db_info = parse_config(find_config_file())
     hostname = os.environ.get("DB_HOST") or db_info.get("host")
@@ -47,9 +52,11 @@ def get_conn_str():
     return conn_str
 
 
-def get_api_configs():
-    """
-    Get API related configurations
+def get_api_configs() -> dict[str, str | None]:
+    """Get API related configurations.
+
+    Returns:
+        Dictionary of API configuration parameters
     """
     api_configs = parse_config(find_config_file(), "api")
     config = {
@@ -61,9 +68,11 @@ def get_api_configs():
     return config
 
 
-def find_config_file():
-    """
-    Find config ini file
+def find_config_file() -> str:
+    """Find config ini file.
+
+    Returns:
+        Path to the configuration file
     """
     config_file = "database.ini"
     script_dir = os.path.dirname(os.path.abspath(__file__))

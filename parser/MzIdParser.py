@@ -5,6 +5,7 @@ converts mzIdentML files to DB entries
 import base64
 import gzip
 import json
+import logging
 import ntpath
 import os
 import re
@@ -14,6 +15,7 @@ import zipfile
 from parser.APIWriter import APIWriter
 from parser.peaklistReader.PeakListWrapper import PeakListWrapper
 from time import time
+from typing import Any
 
 import obonet
 from lxml import etree
@@ -37,15 +39,20 @@ class MzIdParseException(Exception):
 class MzIdParser:
     """Class for parsing identification data from mzIdentML."""
 
-    def __init__(self, mzid_path, temp_dir, peak_list_dir, writer, logger):
-        """
-        Initialise the Parser.
+    def __init__(
+        self,
+        mzid_path: str,
+        peak_list_dir: str | None,
+        writer: Any,
+        logger: logging.Logger,
+    ) -> None:
+        """Initialise the Parser.
 
-        :param mzid_path: path to mzidentML file
-        :param temp_dir: absolute path to temp dir for unzipping/storing files
-        :param peak_list_dir: path to the directory containing the peak list file(s)
-        :param writer: result writer
-        :param logger: logger
+        Args:
+            mzid_path: Path to mzidentML file
+            peak_list_dir: Path to the directory containing the peak list file(s)
+            writer: Result writer
+            logger: Logger
         """
         self.search_modifications = None
         self.mzid_path = mzid_path
@@ -61,9 +68,6 @@ class MzIdParser:
         self.pep_ref_to_pep_id_lookup = {}  # peptide_ref to peptide_id lookup
         self.dbseqs = {}
 
-        self.temp_dir = temp_dir
-        if not self.temp_dir.endswith("/"):
-            self.temp_dir += "/"
         self.peak_list_dir = peak_list_dir
         if peak_list_dir and not peak_list_dir.endswith("/"):
             self.peak_list_dir += "/"
@@ -101,7 +105,7 @@ class MzIdParser:
             )
         )
 
-    def parse(self):
+    def parse(self) -> None:
         """Parse the file."""
         start_time = time()
         self.upload_info()  # overridden (empty function) in xiSPEC subclass
@@ -124,10 +128,11 @@ class MzIdParser:
         )
 
     @staticmethod
-    def check_spectra_data_validity(sp_datum):
-        """
-        Check if the SpectraData element is valid.
-        :param sp_datum:
+    def check_spectra_data_validity(sp_datum: dict[str, Any]) -> None:
+        """Check if the SpectraData element is valid.
+
+        Args:
+            sp_datum: SpectraData element dictionary
         """
         # is there anything we'd like to complain about?
         # SpectrumIDFormat
@@ -161,13 +166,11 @@ class MzIdParser:
         if "location" not in sp_datum or sp_datum["location"] is None:
             raise MzIdParseException("SpectraData is missing location")
 
-    def parse_spectradata_and_init_peak_list_readers(self):
-        """
-        Sets self.peak_list_readers by looping through SpectraData elements
+    def parse_spectradata_and_init_peak_list_readers(self) -> None:
+        """Sets self.peak_list_readers by looping through SpectraData elements.
 
-        dictionary:
-            key: spectra_data_ref
-            value: associated peak_list_reader
+        Sets up a dictionary with spectra_data_ref as key and associated
+        peak_list_reader as value.
         """
         peak_list_readers = {}
         spectra_data = []
@@ -254,7 +257,7 @@ class MzIdParser:
         self.peak_list_readers = peak_list_readers
         self.spectra_data_id_lookup = spectra_data_id_lookup
 
-    def parse_analysis_protocol_collection(self):
+    def parse_analysis_protocol_collection(self) -> None:
         """Parse the AnalysisProtocolCollection and write SpectrumIdentificationProtocols."""
         self.logger.info("parsing AnalysisProtocolCollection- start")
         start_time = time()
@@ -455,9 +458,7 @@ class MzIdParser:
             self.writer.write_data("enzyme", enzymes)
 
     def parse_analysis_collection(self):
-        """
-        Parse the AnalysisCollection element of the mzIdentML file.
-        """
+        """Parse the AnalysisCollection element of the mzIdentML file."""
         self.logger.info("parsing AnalysisCollection - start")
         start_time = time()
         spectrum_identification = []
@@ -743,9 +744,7 @@ class MzIdParser:
         )
 
     def check_target_proteins_have_sequence(self):
-        """
-        Check that all target proteins have a sequence.
-        """
+        """Check that all target proteins have a sequence."""
 
         for db_seq in self.dbseqs.values():
             if "sequence" not in db_seq and not db_seq["is_decoy"]:
@@ -1012,9 +1011,7 @@ class MzIdParser:
         )
 
     def fill_in_missing_scores(self):
-        """
-        Legacy xiSPEC, ignore
-        """
+        """Legacy xiSPEC, ignore."""
         pass
 
     def write_new_upload(self):
@@ -1060,12 +1057,14 @@ class MzIdParser:
         return accessions
 
     def get_cv_params(self, element, super_cls_accession=None):
-        """
-        Get the cvParams of an element.
+        """Get the cvParams of an element.
 
-        :param element: (dict) element from MzIdParser (pyteomics).
-        :param super_cls_accession: (str) accession number of the superclass
-        :return: filtered dictionary of cvParams
+        Args:
+            element: Element dictionary from MzIdParser (pyteomics)
+            super_cls_accession: Accession number of the superclass
+
+        Returns:
+            Filtered dictionary of cvParams
         """
         accessions = self.get_accessions(element)
 
@@ -1108,10 +1107,13 @@ class MzIdParser:
     # split into two functions
     @staticmethod
     def extract_mzid(archive):
-        """
-        Extract the files from the archive.
-        :param archive:
-        :return:
+        """Extract the files from the archive.
+
+        Args:
+            archive: Path to archive file
+
+        Returns:
+            Path to extracted mzid file
         """
         if archive.endswith("zip"):
             zip_ref = zipfile.ZipFile(archive, "r")
@@ -1158,28 +1160,23 @@ class MzIdParser:
 def iterfind_when(
     source, target_name, condition_name, stack_predicate, **kwargs
 ):
-    """
-    Iteratively parse XML stream in ``source``, yielding XML elements
-    matching ``target_name`` as long as earlier in the tree a ``condition_name`` element
-    satisfies ``stack_predicate``, a callable that takes a single :class:`etree.Element` and returns
-    a :class:`bool`.
+    """Iteratively parse XML stream, yielding matching XML elements.
 
-    Parameters
-    ----------
-    source: file-like
-        A file-like object over an XML document
-    target_name: str
-        The name of the XML tag to parse until
-    condition_name: str
-        The name to start parsing at when `stack_predicate` evaluates to true on this element.
-    stack_predicate: callable
-        A function called with a single `etree.Element` that determines if the sub-tree should be parsed
-    **kwargs:
-        Additional arguments passed to :meth:`source._get_info_smart`
+    Yields XML elements matching target_name as long as earlier in the tree
+    a condition_name element satisfies stack_predicate, a callable that takes
+    a single etree.Element and returns a bool.
 
-    Yields
-    ------
-    lxml.etree.Element
+    Args:
+        source: File-like object over an XML document
+        target_name: Name of the XML tag to parse until
+        condition_name: Name to start parsing at when stack_predicate evaluates
+            to true on this element
+        stack_predicate: Function called with a single etree.Element that
+            determines if the sub-tree should be parsed
+        **kwargs: Additional arguments passed to source._get_info_smart
+
+    Yields:
+        lxml.etree.Element
     """
     g = etree.iterparse(source, ("start", "end"), remove_comments=True)
     state = False
@@ -1207,10 +1204,10 @@ class SqliteMzIdParser(MzIdParser):
 
     def write_new_upload(self):
         """Overrides base class function - not needed for xiSPEC."""
-        self.writer.upload_id = 1
         try:
             filename = os.path.basename(self.mzid_path)
             upload_data = {
+                "id": self.writer.upload_id,
                 "identification_file_name": filename,
                 "project_id": self.writer.pxid,
                 "identification_file_name_clean": re.sub(

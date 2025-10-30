@@ -24,7 +24,7 @@ def test_psql_multi_spectra_mzid_parser(tmpdir, db_info, use_database, engine):
     peak_list_folder = False
 
     id_parser = parse_mzid_into_postgresql(
-        mzid, peak_list_folder, tmpdir, logger, use_database, engine
+        mzid, peak_list_folder, logger, use_database, engine
     )
 
     with engine.connect() as conn:
@@ -93,7 +93,7 @@ def test_psql_looplink_mzid_parser(tmpdir, db_info, use_database, engine):
     peak_list_folder = False
 
     id_parser = parse_mzid_into_postgresql(
-        mzid, peak_list_folder, tmpdir, logger, use_database, engine
+        mzid, peak_list_folder, logger, use_database, engine
     )
 
     with engine.connect() as conn:
@@ -142,7 +142,7 @@ def test_psql_looplink_mzid_parser(tmpdir, db_info, use_database, engine):
     engine.dispose()
 
 
-def test_psql_noncov_mzid_parser(tmpdir, db_info, use_database, engine):
+def test_psql_noncov_mzid_parser(db_info, use_database, engine):
     # file paths
     fixtures_dir = os.path.join(
         os.path.dirname(__file__), "fixtures", "mzid_parser", "1.3.0"
@@ -151,7 +151,7 @@ def test_psql_noncov_mzid_parser(tmpdir, db_info, use_database, engine):
     peak_list_folder = False
 
     id_parser = parse_mzid_into_postgresql(
-        mzid, peak_list_folder, tmpdir, logger, use_database, engine
+        mzid, peak_list_folder, logger, use_database, engine
     )
 
     with engine.connect() as conn:
