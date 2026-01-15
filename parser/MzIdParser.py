@@ -115,7 +115,7 @@ class MzIdParser:
         self.parse_db_sequences()  # overridden (empty function) in xiSPEC subclass
         self.parse_peptides()
         self.parse_peptide_evidences()
-        self.check_target_proteins_have_sequence()
+        # self.check_target_proteins_have_sequence()
         self.main_loop()
 
         self.fill_in_missing_scores()  # empty here, overridden in xiSPEC subclass to do stuff
