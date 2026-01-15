@@ -519,14 +519,14 @@ def convert_from_ftp(
 
 def get_ftp_login(ftp_ip: str) -> ftplib.FTP:
     """Log in to an FTP server."""
-    time.sleep(10)  # Delay to avoid rate limiting
-    try:
-        ftp = ftplib.FTP(ftp_ip)
-        ftp.login()  # Uses password: anonymous@
-        return ftp
-    except ftplib.all_errors as e:
-        logger.error(f'FTP login failed at {time.strftime("%c")}')
-        raise e
+    while True:
+        time.sleep(10)  # Delay to avoid rate limiting
+        try:
+            ftp = ftplib.FTP(ftp_ip)
+            ftp.login()  # Uses password: anonymous@
+            return ftp
+        except ftplib.all_errors as e:
+            logger.error(f'FTP login failed at {time.strftime("%c")}')
 
 
 def get_ftp_file_list(ftp_ip: str, ftp_dir: str) -> list[str]:
@@ -567,25 +567,25 @@ def convert_dir(
                 writer = APIWriter(pxid=project_identifier)
             else:
                 writer = DatabaseWriter(conn_str, pxid=project_identifier)
-            if schema_validate(os.path.join(local_dir, file)):
-                id_parser = MzIdParser(
-                    os.path.join(local_dir, file),
-                    peaklist_dir,
-                    writer,
-                    logger,
-                )
-                try:
-                    id_parser.parse()
-                    # logger.info(id_parser.warnings + "\n")
-                except Exception as e:
-                    logger.error(f"Error parsing {file}")
-                    logger.exception(e)
-                    raise e
-                finally:
-                    _dispose_writer_engine(writer)
-            else:
-                print(f"File {file} is schema invalid.")
-                sys.exit(1)
+            # if schema_validate(os.path.join(local_dir, file)):
+            id_parser = MzIdParser(
+                os.path.join(local_dir, file),
+                peaklist_dir,
+                writer,
+                logger,
+            )
+            try:
+                id_parser.parse()
+                # logger.info(id_parser.warnings + "\n")
+            except Exception as e:
+                logger.error(f"Error parsing {file}")
+                logger.exception(e)
+                raise e
+            finally:
+                _dispose_writer_engine(writer)
+            # else:
+            #     print(f"File {file} is schema invalid.")
+            #     sys.exit(1)
 
 
 def validate_file(
