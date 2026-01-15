@@ -519,14 +519,14 @@ def convert_from_ftp(
 
 def get_ftp_login(ftp_ip: str) -> ftplib.FTP:
     """Log in to an FTP server."""
-    time.sleep(10)  # Delay to avoid rate limiting
-    try:
-        ftp = ftplib.FTP(ftp_ip)
-        ftp.login()  # Uses password: anonymous@
-        return ftp
-    except ftplib.all_errors as e:
-        logger.error(f'FTP login failed at {time.strftime("%c")}')
-        raise e
+    while True:
+        time.sleep(10)  # Delay to avoid rate limiting
+        try:
+            ftp = ftplib.FTP(ftp_ip)
+            ftp.login()  # Uses password: anonymous@
+            return ftp
+        except ftplib.all_errors as e:
+            logger.error(f'FTP login failed at {time.strftime("%c")}')
 
 
 def get_ftp_file_list(ftp_ip: str, ftp_dir: str) -> list[str]:
