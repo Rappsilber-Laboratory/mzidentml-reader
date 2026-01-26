@@ -184,3 +184,6 @@ dmypy.json
 ehthumbs.db
 Thumbs.db
 \.directory
+
+# Claude Code configuration
+CLAUDE.md
