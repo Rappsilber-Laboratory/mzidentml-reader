@@ -50,7 +50,7 @@ setup(
         "orjson",
         "authlib>=1.6.6",
         "virtualenv>=20.36.1",
-        "filelock>=3.20.3"
+        "filelock>=3.20.3",
         "certifi>=2023.7.22",
         "python-multipart>=0.0.18",
         "python-jose>=3.3.0",
