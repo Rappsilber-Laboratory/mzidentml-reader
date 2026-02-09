@@ -136,31 +136,31 @@ class MzIdParser:
         """
         # is there anything we'd like to complain about?
         # SpectrumIDFormat
-        if (
-            "SpectrumIDFormat" not in sp_datum
-            or sp_datum["SpectrumIDFormat"] is None
-        ):
-            raise MzIdParseException("SpectraData is missing SpectrumIdFormat")
-        if not hasattr(sp_datum["SpectrumIDFormat"], "accession"):
-            raise MzIdParseException(
-                "SpectraData.SpectrumIdFormat is missing accession"
-            )
-        if sp_datum["SpectrumIDFormat"].accession is None:
-            raise MzIdParseException(
-                "SpectraData.SpectrumIdFormat is missing accession"
-            )
-
-        # FileFormat
-        if "FileFormat" not in sp_datum or sp_datum["FileFormat"] is None:
-            raise MzIdParseException("SpectraData is missing FileFormat")
-        if not hasattr(sp_datum["FileFormat"], "accession"):
-            raise MzIdParseException(
-                "SpectraData.FileFormat is missing accession"
-            )
-        if sp_datum["FileFormat"].accession is None:
-            raise MzIdParseException(
-                "SpectraData.FileFormat is missing accession"
-            )
+        # if (
+        #     "SpectrumIDFormat" not in sp_datum
+        #     or sp_datum["SpectrumIDFormat"] is None
+        # ):
+        #     raise MzIdParseException("SpectraData is missing SpectrumIdFormat")
+        # if not hasattr(sp_datum["SpectrumIDFormat"], "accession"):
+        #     raise MzIdParseException(
+        #         "SpectraData.SpectrumIdFormat is missing accession"
+        #     )
+        # if sp_datum["SpectrumIDFormat"].accession is None:
+        #     raise MzIdParseException(
+        #         "SpectraData.SpectrumIdFormat is missing accession"
+        #     )
+        #
+        # # FileFormat
+        # if "FileFormat" not in sp_datum or sp_datum["FileFormat"] is None:
+        #     raise MzIdParseException("SpectraData is missing FileFormat")
+        # if not hasattr(sp_datum["FileFormat"], "accession"):
+        #     raise MzIdParseException(
+        #         "SpectraData.FileFormat is missing accession"
+        #     )
+        # if sp_datum["FileFormat"].accession is None:
+        #     raise MzIdParseException(
+        #         "SpectraData.FileFormat is missing accession"
+        #     )
 
         # location
         if "location" not in sp_datum or sp_datum["location"] is None:

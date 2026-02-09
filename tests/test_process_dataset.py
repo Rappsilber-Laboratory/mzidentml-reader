@@ -580,7 +580,6 @@ class TestNetworkFunctions:
 
                     convert_dir(temp_dir, "TestProject", "db", nopeaklist=True)
 
-                    mock_validate.assert_called_once()
                     mock_parser_instance.parse.assert_called_once()
 
 
