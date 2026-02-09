@@ -27,8 +27,7 @@ from sqlalchemy import create_engine, text
 # Import custom modules
 from config.config_parser import get_conn_str
 
-# FTP download exclusions
-SKIP_EXTENSIONS = (".raw", ".raw.gz", ".all.zip", ".csv", ".txt")
+EXTENSIONS = (".mzid", ".mzid.gz", ".mgf", ".mzml", ".ms2")
 SKIP_DIRS = ("generated",)
 
 try:
@@ -236,6 +235,9 @@ def validate(validate_arg: str, temp_dir: str, nopeaklist: bool) -> None:
     if os.path.isdir(validate_arg):
         print(f"Validating directory: {validate_arg}")
         for file in os.listdir(validate_arg):
+            if file.endswith(".mzid.gz"):
+                logger.info(f"Unzipping {file}")
+                file = MzIdParser.extract_mzid(os.path.join(validate_arg, file))
             if file.endswith(".mzid"):
                 file_to_validate = os.path.join(validate_arg, file)
                 if validate_file(
@@ -491,21 +493,35 @@ def convert_from_ftp(
     files = get_ftp_file_list(ftp_ip, urlparse(ftp_url).path)
     for f in files:
         f_lower = f.lower()
-        if not (
-            os.path.isfile(os.path.join(str(path), f))
-            or f_lower in SKIP_DIRS
-            or f_lower.endswith(SKIP_EXTENSIONS)
-        ):
+        if not (os.path.isfile(os.path.join(str(path), f)) or f_lower in SKIP_DIRS) and f_lower.endswith(EXTENSIONS):
             logger.info(f"Downloading {f} to {path}")
-            ftp = get_ftp_login(ftp_ip)
-            try:
-                ftp.cwd(urlparse(ftp_url).path)
-                with open(os.path.join(str(path), f), "wb") as file:
-                    ftp.retrbinary(f"RETR {f}", file.write)
-                ftp.quit()
-            except ftplib.error_perm as e:
-                ftp.quit()
-                raise e
+            max_retries = 10
+            base_delay = 10  # seconds, doubles each retry
+
+            for attempt in range(max_retries):
+                ftp = get_ftp_login(ftp_ip)
+                try:
+                    ftp.cwd(urlparse(ftp_url).path)
+                    with open(os.path.join(str(path), f), "wb") as file:
+                        ftp.retrbinary(f"RETR {f}", file.write)
+                    ftp.quit()
+                    break  # Success, exit retry loop
+                except ftplib.error_perm as e:
+                    ftp.quit()
+                    raise e  # Permission errors should not be retried
+                except (ConnectionResetError, BrokenPipeError, ftplib.error_temp, OSError) as e:
+                    logger.warning(f"Download attempt {attempt + 1}/{max_retries} failed: {e}")
+                    try:
+                        ftp.quit()
+                    except Exception:
+                        pass  # Connection may already be closed
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (2 ** attempt)  # Exponential backoff: 10, 20, 40, 80...
+                        logger.info(f"Waiting {delay}s before retry...")
+                        time.sleep(delay)
+                    else:
+                        logger.error(f"Download failed after {max_retries} attempts: {f}")
+                        raise e
 
     convert_dir(path, project_identifier, writer_method)
 
@@ -567,25 +583,21 @@ def convert_dir(
                 writer = APIWriter(pxid=project_identifier)
             else:
                 writer = DatabaseWriter(conn_str, pxid=project_identifier)
-            if schema_validate(os.path.join(local_dir, file)):
-                id_parser = MzIdParser(
-                    os.path.join(local_dir, file),
-                    peaklist_dir,
-                    writer,
-                    logger,
-                )
-                try:
-                    id_parser.parse()
-                    # logger.info(id_parser.warnings + "\n")
-                except Exception as e:
-                    logger.error(f"Error parsing {file}")
-                    logger.exception(e)
-                    raise e
-                finally:
-                    _dispose_writer_engine(writer)
-            else:
-                print(f"File {file} is schema invalid.")
-                sys.exit(1)
+            id_parser = MzIdParser(
+                os.path.join(local_dir, file),
+                peaklist_dir,
+                writer,
+                logger,
+            )
+            try:
+                id_parser.parse()
+                # logger.info(id_parser.warnings + "\n")
+            except Exception as e:
+                logger.error(f"Error parsing {file}")
+                logger.exception(e)
+                raise e
+            finally:
+                _dispose_writer_engine(writer)
 
 
 def validate_file(
