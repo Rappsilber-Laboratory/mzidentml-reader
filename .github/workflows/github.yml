@@ -97,9 +97,6 @@ jobs:
       - name: Substitute database variables by environment variables or variables
         run: envsubst < default.database.ini > database.ini
 
-      - name: Print database.ini
-        run: cat database.ini
-
       - name: Create ConfigMap for DATABASE_INI
         run: kubectl -n ${{ vars.K8S_NAMESPACE }} create configmap ${{ vars.DATABASE_INI }} --from-file=database.ini || true
 

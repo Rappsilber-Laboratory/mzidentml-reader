@@ -1035,26 +1035,33 @@ class MzIdParser:
 
     def write_new_upload(self):
         """Write new upload."""
-        try:
-            filename = os.path.basename(self.mzid_path)
-            upload_data = {
-                "identification_file_name": filename,
-                "project_id": self.writer.pxid,
-                "identification_file_name_clean": re.sub(
-                    r"[^0-9a-zA-Z-]+", "-", filename
-                ),
-            }
-            table = "upload"
+        filename = os.path.basename(self.mzid_path)
+        upload_data = {
+            "identification_file_name": filename,
+            "project_id": self.writer.pxid,
+            "identification_file_name_clean": re.sub(
+                r"[^0-9a-zA-Z-]+", "-", filename
+            ),
+        }
+        table = "upload"
 
-            response = self.writer.write_new_upload(table, upload_data)
-            if response:
-                self.writer.upload_id = int(response)
+        response = self.writer.write_new_upload(table, upload_data)
+        if response is not None:
+            # APIWriter returns response.json() which may be a dict (e.g. {"id": 5})
+            # DatabaseWriter returns a raw int from RETURNING clause
+            if isinstance(response, dict):
+                upload_id = response.get("id") or response.get("upload_id")
+                if upload_id is None:
+                    raise Exception(
+                        f"API response dict does not contain 'id' or 'upload_id': {response}"
+                    )
+                self.writer.upload_id = int(upload_id)
             else:
-                raise Exception(
-                    "Response is not available to create a upload ID"
-                )
-        except SQLAlchemyError as e:
-            print(f"Error during database insert: {e}")
+                self.writer.upload_id = int(response)
+        else:
+            raise Exception(
+                "Response is not available to create a upload ID"
+            )
 
     def write_other_info(self):
         """Write remaining information into Upload table."""

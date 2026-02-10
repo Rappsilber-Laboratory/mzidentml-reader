@@ -28,6 +28,17 @@ class APIWriter(Writer):
     ) -> dict[str, Any] | None:
         response = None
         try:
+            # Normalize data format to match DatabaseWriter behaviour
+            if isinstance(data, dict):
+                data = [data]
+
+            # Ensure all dicts have the same keys (fill missing with None)
+            keys = list(set(k for r in data for k in r.keys()))
+            for r in data:
+                for k in keys:
+                    if k not in r:
+                        r[k] = None
+
             API_ENDPOINT = self.base_url + "/write_data"
             API_KEY_VALUE = self.api_key_value
             API_KEY = self.api_key
@@ -92,6 +103,7 @@ class APIWriter(Writer):
         except Exception as e:
             print(f"Caught an exception: {e}")
             traceback.print_exc()
+            raise
         if response is not None:
             return response.json()
         else:
@@ -148,6 +160,7 @@ class APIWriter(Writer):
         except Exception as e:
             print(f"Caught an exception: {e}")
             traceback.print_exc()
+            raise
         if response is not None:
             return response.json()
         else:
@@ -202,6 +215,7 @@ class APIWriter(Writer):
         except Exception as e:
             print(f"Caught an exception: {e}")
             traceback.print_exc()
+            raise
         if response is not None:
             return response.json()
         else:
