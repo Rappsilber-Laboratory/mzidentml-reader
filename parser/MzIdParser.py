@@ -218,7 +218,16 @@ class MzIdParser:
                                     with zipfile.ZipFile(
                                         zip_file, "r"
                                     ) as zip_ref:
-                                        zip_ref.extractall(self.peak_list_dir)
+                                        base = os.path.abspath(self.peak_list_dir) + os.sep
+                                        for member in zip_ref.infolist():
+                                            dest = os.path.abspath(
+                                                os.path.join(self.peak_list_dir, member.filename)
+                                            )
+                                            if not dest.startswith(base):
+                                                raise MzIdParseException(
+                                                    f"Illegal path in zip: {member.filename}"
+                                                )
+                                            zip_ref.extract(member, self.peak_list_dir)
                                 except IOError:
                                     raise IOError()
                         try:
@@ -1126,10 +1135,18 @@ class MzIdParser:
             Path to extracted mzid file
         """
         if archive.endswith("zip"):
-            zip_ref = zipfile.ZipFile(archive, "r")
             unzip_path = archive + "_unzip/"
-            zip_ref.extractall(unzip_path)
-            zip_ref.close()
+            with zipfile.ZipFile(archive, "r") as zip_ref:
+                base = os.path.abspath(unzip_path) + os.sep
+                for member in zip_ref.infolist():
+                    dest = os.path.abspath(
+                        os.path.join(unzip_path, member.filename)
+                    )
+                    if not dest.startswith(base):
+                        raise MzIdParseException(
+                            f"Illegal path in zip: {member.filename}"
+                        )
+                    zip_ref.extract(member, unzip_path)
 
             return_file_list = []
 

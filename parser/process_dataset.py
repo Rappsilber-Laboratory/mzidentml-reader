@@ -533,16 +533,29 @@ def convert_from_ftp(
             raise e
 
 
-def get_ftp_login(ftp_ip: str) -> ftplib.FTP:
-    """Log in to an FTP server."""
-    while True:
+def get_ftp_login(ftp_ip: str, max_retries: int = 10) -> ftplib.FTP:
+    """Log in to an FTP server.
+
+    Args:
+        ftp_ip: FTP server IP address
+        max_retries: Maximum number of login attempts before giving up
+
+    Returns:
+        Connected FTP instance
+
+    Raises:
+        ftplib.all_errors: If login fails after max_retries attempts
+    """
+    for attempt in range(max_retries):
         time.sleep(10)  # Delay to avoid rate limiting
         try:
             ftp = ftplib.FTP(ftp_ip)
             ftp.login()  # Uses password: anonymous@
             return ftp
         except ftplib.all_errors as e:
-            logger.error(f'FTP login failed at {time.strftime("%c")}')
+            logger.error(f'FTP login attempt {attempt + 1}/{max_retries} failed at {time.strftime("%c")}')
+            if attempt >= max_retries - 1:
+                raise
 
 
 def get_ftp_file_list(ftp_ip: str, ftp_dir: str) -> list[str]:

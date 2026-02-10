@@ -51,12 +51,13 @@ def drop_db(connection_str: str) -> None:
             # Terminate all connections to the target database
             conn.execute(
                 text(
-                    f"""
+                    """
                 SELECT pg_terminate_backend(pid)
                 FROM pg_stat_activity
-                WHERE datname = '{db_name}' AND pid <> pg_backend_pid()
+                WHERE datname = :db_name AND pid <> pg_backend_pid()
             """
-                )
+                ),
+                {"db_name": db_name},
             )
             conn.commit()
     except Exception:
