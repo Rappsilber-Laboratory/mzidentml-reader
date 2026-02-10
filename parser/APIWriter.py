@@ -54,8 +54,8 @@ class APIWriter(Writer):
                 print(f"Unexpected status code: {response.status_code}")
         except Exception as e:
             print(f"Caught an exception: {e}")
-            # print(payload)
             traceback.print_exc()
+            raise
         if response is not None:
             return response.json()
         else:

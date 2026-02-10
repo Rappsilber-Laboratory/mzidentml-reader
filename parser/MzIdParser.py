@@ -509,6 +509,7 @@ class MzIdParser:
         start_time = time()
 
         db_sequences = []
+        db_seq_index = 0
         for db_id in self.mzid_reader._offset_index["DBSequence"].keys():
             db_sequence = self.mzid_reader.get_by_id(
                 db_id, tag_id="DBSequence"
@@ -543,7 +544,16 @@ class MzIdParser:
             db_sequences.append(db_sequence_data)
             self.dbseqs[db_id] = db_sequence_data
 
-        self.writer.write_data("dbsequence", db_sequences)
+            # Batch write 500 db sequences
+            db_seq_index += 1
+            if db_seq_index % 500 == 0:
+                self.logger.debug("writing 500 db sequences to DB")
+                self.writer.write_data("dbsequence", db_sequences)
+                db_sequences = []
+
+        # write the remaining db sequences
+        if db_sequences:
+            self.writer.write_data("dbsequence", db_sequences)
 
         self.logger.info(
             "parse db sequences - done. Time: {} sec".format(
