@@ -1,5 +1,6 @@
 """APIWriter.py - Class for writing results via an API."""
 
+import gzip
 import json
 import logging
 from parser.Writer import Writer
@@ -29,11 +30,32 @@ class APIWriter(Writer):
         self.api_key_value = configs["api_key_value"]
         self._write_counts: dict[str, int] = {}
 
-    def _get_headers(self) -> dict[str, str]:
-        return {
+    def _get_headers(self, compressed: bool = False) -> dict[str, str]:
+        headers = {
             "Content-Type": "application/json",
             self.api_key: self.api_key_value,
         }
+        if compressed:
+            headers["Content-Encoding"] = "gzip"
+        return headers
+
+    def _post(
+        self, url: str, payload: Any, timeout: tuple[int, int] = API_TIMEOUT
+    ) -> requests.Response:
+        """Serialize payload to JSON, gzip-compress, and POST."""
+        raw = json.dumps(payload).encode("utf-8")
+        compressed = gzip.compress(raw)
+        ratio = len(compressed) / len(raw) * 100 if raw else 0
+        logger.info(
+            f"payload raw={len(raw)} compressed={len(compressed)} "
+            f"ratio={ratio:.1f}%"
+        )
+        return requests.post(
+            url=url,
+            data=compressed,
+            headers=self._get_headers(compressed=True),
+            timeout=timeout,
+        )
 
     def _track_count(self, table: str, count: int) -> None:
         self._write_counts[table] = self._write_counts.get(table, 0) + count
@@ -41,6 +63,13 @@ class APIWriter(Writer):
     def get_write_summary(self) -> dict[str, int]:
         """Return cumulative record counts written per table."""
         return dict(self._write_counts)
+
+    @staticmethod
+    def _strip_none_values(
+        data: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Remove keys with None values to reduce payload size."""
+        return [{k: v for k, v in row.items() if v is not None} for row in data]
 
     def write_data(
         self, table: str, data: list[dict[str, Any]] | dict[str, Any]
@@ -59,23 +88,20 @@ class APIWriter(Writer):
         record_count = len(data)
         self._track_count(table, record_count)
 
+        # Strip None values to reduce payload size
+        data = self._strip_none_values(data)
+
         API_ENDPOINT = self.base_url + "/write_data"
         payload = {
             "table": table,
             "data": data,
         }
-        payload_size = len(json.dumps(payload))
+
         logger.info(
-            f"write_data table={table} records={record_count} "
-            f"payload_size={payload_size} bytes"
+            f"write_data table={table} records={record_count}"
         )
 
-        response = requests.post(
-            url=API_ENDPOINT,
-            headers=self._get_headers(),
-            json=payload,
-            timeout=API_TIMEOUT,
-        )
+        response = self._post(API_ENDPOINT, payload)
         response.raise_for_status()
         result = response.json()
 
@@ -91,17 +117,9 @@ class APIWriter(Writer):
     def write_new_upload(self, table: str, data: dict[str, Any]) -> int | None:
         API_ENDPOINT = self.base_url + "/write_new_upload"
 
-        payload_size = len(json.dumps(data))
-        logger.info(
-            f"write_new_upload payload_size={payload_size} bytes"
-        )
+        logger.info("write_new_upload")
 
-        response = requests.post(
-            url=API_ENDPOINT,
-            headers=self._get_headers(),
-            json=data,
-            timeout=API_TIMEOUT,
-        )
+        response = self._post(API_ENDPOINT, data)
         response.raise_for_status()
         result = response.json()
 
@@ -133,18 +151,9 @@ class APIWriter(Writer):
             "samples": samples,
             "bib": bib,
         }
-        payload_size = len(json.dumps(payload))
-        logger.info(
-            f"write_mzid_info upload_id={upload_id} "
-            f"payload_size={payload_size} bytes"
-        )
+        logger.info(f"write_mzid_info upload_id={upload_id}")
 
-        response = requests.post(
-            url=API_ENDPOINT,
-            headers=self._get_headers(),
-            json=payload,
-            timeout=API_TIMEOUT,
-        )
+        response = self._post(API_ENDPOINT, payload)
         response.raise_for_status()
         result = response.json()
 
@@ -184,12 +193,7 @@ class APIWriter(Writer):
             f"contains_crosslinks={contains_crosslinks}"
         )
 
-        response = requests.post(
-            url=API_ENDPOINT,
-            headers=self._get_headers(),
-            json=payload,
-            timeout=API_TIMEOUT,
-        )
+        response = self._post(API_ENDPOINT, payload)
         response.raise_for_status()
         result = response.json()
 
