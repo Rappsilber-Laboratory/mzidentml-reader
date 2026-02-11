@@ -121,6 +121,11 @@ class MzIdParser:
         self.fill_in_missing_scores()  # empty here, overridden in xiSPEC subclass to do stuff
         self.write_other_info()  # overridden (empty function) in xiSPEC subclass
 
+        # Log write summary for API method
+        if hasattr(self.writer, 'get_write_summary'):
+            summary = self.writer.get_write_summary()
+            self.logger.info(f"write summary: {summary}")
+
         self.logger.info(
             "all done! Total time: "
             + str(round(time() - start_time, 2))
@@ -926,17 +931,13 @@ class MzIdParser:
                     self.logger.debug(
                         "writing 500 entries (500 spectra and their idents) to DB"
                     )
-                    try:
-                        if self.peak_list_dir:
-                            self.writer.write_data("spectrum", spectra)
-                        spectra = []
-                        self.writer.write_data(
-                            "match", spectrum_identifications
-                        )
-                        spectrum_identifications = []
-                    except Exception as e:
-                        print(f"Caught an exception while writing data: {e}")
-                        traceback.print_exc()
+                    if self.peak_list_dir:
+                        self.writer.write_data("spectrum", spectra)
+                    spectra = []
+                    self.writer.write_data(
+                        "match", spectrum_identifications
+                    )
+                    spectrum_identifications = []
 
         # end main loop
         self.logger.info(

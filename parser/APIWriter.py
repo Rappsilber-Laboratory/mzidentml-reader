@@ -1,13 +1,18 @@
 """APIWriter.py - Class for writing results via an API."""
 
 import json
-import traceback
+import logging
 from parser.Writer import Writer
 from typing import Any
 
 import requests
 
 from config.config_parser import get_api_configs
+
+logger = logging.getLogger(__name__)
+
+# Default timeout for API requests (connect_timeout, read_timeout) in seconds
+API_TIMEOUT = (10, 120)
 
 
 # noinspection PyPep8Naming
@@ -22,92 +27,90 @@ class APIWriter(Writer):
         self.base_url = configs["base_url"]
         self.api_key = configs["api_key"]
         self.api_key_value = configs["api_key_value"]
+        self._write_counts: dict[str, int] = {}
+
+    def _get_headers(self) -> dict[str, str]:
+        return {
+            "Content-Type": "application/json",
+            self.api_key: self.api_key_value,
+        }
+
+    def _track_count(self, table: str, count: int) -> None:
+        self._write_counts[table] = self._write_counts.get(table, 0) + count
+
+    def get_write_summary(self) -> dict[str, int]:
+        """Return cumulative record counts written per table."""
+        return dict(self._write_counts)
 
     def write_data(
         self, table: str, data: list[dict[str, Any]] | dict[str, Any]
     ) -> dict[str, Any] | None:
-        response = None
-        try:
-            # Normalize data format to match DatabaseWriter behaviour
-            if isinstance(data, dict):
-                data = [data]
+        # Normalize data format to match DatabaseWriter behaviour
+        if isinstance(data, dict):
+            data = [data]
 
-            # Ensure all dicts have the same keys (fill missing with None)
-            keys = list(set(k for r in data for k in r.keys()))
-            for r in data:
-                for k in keys:
-                    if k not in r:
-                        r[k] = None
+        # Ensure all dicts have the same keys (fill missing with None)
+        keys = list(set(k for r in data for k in r.keys()))
+        for r in data:
+            for k in keys:
+                if k not in r:
+                    r[k] = None
 
-            API_ENDPOINT = self.base_url + "/write_data"
-            API_KEY_VALUE = self.api_key_value
-            API_KEY = self.api_key
-            headers = {
-                "Content-Type": "application/json",
-                API_KEY: API_KEY_VALUE,
-            }
-            payload = {
-                "table": table,
-                "data": data,
-            }
-            # Calculate the size of the payload
-            payload_size = len(json.dumps(payload))
-            print("Payload Size:", payload_size)  # Print the payload size
-            response = requests.post(
-                url=API_ENDPOINT, headers=headers, json=payload
-            )
-            response.raise_for_status()
+        record_count = len(data)
+        self._track_count(table, record_count)
 
-            # Check the response status code and handle it as needed
-            if response.status_code == 200:
-                print("Request successful:" + API_ENDPOINT)
-            else:
-                print(f"Unexpected status code: {response.status_code}")
-        except Exception as e:
-            print(f"Caught an exception: {e}")
-            traceback.print_exc()
-            raise
-        if response is not None:
-            return response.json()
-        else:
-            return None
+        API_ENDPOINT = self.base_url + "/write_data"
+        payload = {
+            "table": table,
+            "data": data,
+        }
+        payload_size = len(json.dumps(payload))
+        logger.info(
+            f"write_data table={table} records={record_count} "
+            f"payload_size={payload_size} bytes"
+        )
+
+        response = requests.post(
+            url=API_ENDPOINT,
+            headers=self._get_headers(),
+            json=payload,
+            timeout=API_TIMEOUT,
+        )
+        response.raise_for_status()
+        result = response.json()
+
+        logger.info(
+            f"write_data table={table} records={record_count} "
+            f"status={response.status_code} "
+            f"response={result} "
+            f"cumulative_{table}={self._write_counts[table]}"
+        )
+
+        return result
 
     def write_new_upload(self, table: str, data: dict[str, Any]) -> int | None:
-        response = None
+        API_ENDPOINT = self.base_url + "/write_new_upload"
 
-        try:
-            API_ENDPOINT = self.base_url + "/write_new_upload"
-            API_KEY_VALUE = self.api_key_value
-            API_KEY = self.api_key
-            headers = {
-                "Content-Type": "application/json",
-                API_KEY: API_KEY_VALUE,
-            }
+        payload_size = len(json.dumps(data))
+        logger.info(
+            f"write_new_upload payload_size={payload_size} bytes"
+        )
 
-            # Calculate the size of the payload
-            payload_size = len(json.dumps(data))
-            print(
-                "write_new_upload Payload Size:", payload_size
-            )  # Print the payload size
-            response = requests.post(
-                url=API_ENDPOINT, headers=headers, json=data
-            )
-            response.raise_for_status()
+        response = requests.post(
+            url=API_ENDPOINT,
+            headers=self._get_headers(),
+            json=data,
+            timeout=API_TIMEOUT,
+        )
+        response.raise_for_status()
+        result = response.json()
 
-            # Check the response status code and handle it as needed
-            if response.status_code == 200:
-                print("Request successful")
-            else:
-                print(f"Unexpected status code: {response.status_code}")
-            print(response.json())
-        except Exception as e:
-            print(f"Caught an exception: {e}")
-            traceback.print_exc()
-            raise
-        if response is not None:
-            return response.json()
-        else:
-            return None
+        logger.info(
+            f"write_new_upload status={response.status_code} "
+            f"response={result}"
+        )
+
+        return result
 
     def write_mzid_info(
         self,
@@ -119,52 +122,38 @@ class APIWriter(Writer):
         bib: list[Any],
         upload_id: int,
     ) -> dict[str, Any] | None:
-        response = None
-        try:
-            API_ENDPOINT = (
-                self.base_url + "/write_mzid_info?upload_id=" + str(upload_id)
-            )
-            API_KEY_VALUE = self.api_key_value
-            API_KEY = self.api_key
-            headers = {
-                "Content-Type": "application/json",
-                API_KEY: API_KEY_VALUE,
-            }
-            payload = {
-                "analysis_software_list": analysis_software_list,
-                "spectra_formats": spectra_formats,
-                "provider": provider,
-                "audits": audits,
-                "samples": samples,
-                "bib": bib,
-            }
-            # Calculate the size of the payload
-            payload_size = len(json.dumps(payload))
-            print(
-                "write_mzid_info Payload Size:", payload_size
-            )  # Print the payload size
-            response = requests.post(
-                url=API_ENDPOINT, headers=headers, json=payload
-            )
-            response.raise_for_status()
-            result = response.json()
+        API_ENDPOINT = (
+            self.base_url + "/write_mzid_info?upload_id=" + str(upload_id)
+        )
+        payload = {
+            "analysis_software_list": analysis_software_list,
+            "spectra_formats": spectra_formats,
+            "provider": provider,
+            "audits": audits,
+            "samples": samples,
+            "bib": bib,
+        }
+        payload_size = len(json.dumps(payload))
+        logger.info(
+            f"write_mzid_info upload_id={upload_id} "
+            f"payload_size={payload_size} bytes"
+        )
 
-            # Check the response status code and handle it as needed
-            if response.status_code == 200:
-                print("Request successful")
-                print(result)
-            else:
-                print(f"Unexpected status code: {response.status_code}")
+        response = requests.post(
+            url=API_ENDPOINT,
+            headers=self._get_headers(),
+            json=payload,
+            timeout=API_TIMEOUT,
+        )
+        response.raise_for_status()
+        result = response.json()
 
-            print(result)
-        except Exception as e:
-            print(f"Caught an exception: {e}")
-            traceback.print_exc()
-            raise
-        if response is not None:
-            return response.json()
-        else:
-            return None
+        logger.info(
+            f"write_mzid_info status={response.status_code} "
+            f"response={result}"
+        )
+
+        return result
 
     def write_other_info(
         self,
@@ -182,44 +171,34 @@ class APIWriter(Writer):
         Returns:
             Response from API, or None if request failed
         """
-        response = None
-        try:
-            # todo: use urljoin
-            API_ENDPOINT = (
-                self.base_url + "/write_other_info?upload_id=" + str(upload_id)
-            )
-            API_KEY_VALUE = self.api_key_value
-            API_KEY = self.api_key
-            headers = {
-                "Content-Type": "application/json",
-                API_KEY: API_KEY_VALUE,
-            }
-            payload = {
-                "contains_crosslinks": contains_crosslinks,
-                "upload_warnings": upload_warnings,
-            }
-            response = requests.post(
-                url=API_ENDPOINT, headers=headers, json=payload
-            )
-            response.raise_for_status()
-            result = response.json()
+        API_ENDPOINT = (
+            self.base_url + "/write_other_info?upload_id=" + str(upload_id)
+        )
+        payload = {
+            "contains_crosslinks": contains_crosslinks,
+            "upload_warnings": upload_warnings,
+        }
 
-            # Check the response status code and handle it as needed
-            if response.status_code == 200:
-                print("Request successful")
-                print(result)
-            else:
-                print(f"Unexpected status code: {response.status_code}")
+        logger.info(
+            f"write_other_info upload_id={upload_id} "
+            f"contains_crosslinks={contains_crosslinks}"
+        )
 
-            print(result)
-        except Exception as e:
-            print(f"Caught an exception: {e}")
-            traceback.print_exc()
-            raise
-        if response is not None:
-            return response.json()
-        else:
-            return None
+        response = requests.post(
+            url=API_ENDPOINT,
+            headers=self._get_headers(),
+            json=payload,
+            timeout=API_TIMEOUT,
+        )
+        response.raise_for_status()
+        result = response.json()
+
+        logger.info(
+            f"write_other_info status={response.status_code} "
+            f"response={result}"
+        )
+
+        return result
 
     def fill_in_missing_scores(self) -> None:
         """ToDo: this needs to be adapted to sqlalchemy from old SQLite version."""
