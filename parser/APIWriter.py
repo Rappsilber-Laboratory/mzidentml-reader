@@ -3,6 +3,7 @@
 import gzip
 import json
 import logging
+import os
 from parser.Writer import Writer
 from typing import Any
 
@@ -29,6 +30,11 @@ class APIWriter(Writer):
         self.api_key = configs["api_key"]
         self.api_key_value = configs["api_key_value"]
         self._write_counts: dict[str, int] = {}
+        self._use_gzip = os.environ.get("GZIP_REQUESTS", "").lower() in (
+            "1", "true", "yes",
+        )
+        if self._use_gzip:
+            logger.info("gzip compression enabled for API requests")
 
     def _get_headers(self, compressed: bool = False) -> dict[str, str]:
         headers = {
@@ -42,18 +48,28 @@ class APIWriter(Writer):
     def _post(
         self, url: str, payload: Any, timeout: tuple[int, int] = API_TIMEOUT
     ) -> requests.Response:
-        """Serialize payload to JSON, gzip-compress, and POST."""
+        """Serialize payload to JSON and POST. Optionally gzip-compress."""
         raw = json.dumps(payload).encode("utf-8")
-        compressed = gzip.compress(raw)
-        ratio = len(compressed) / len(raw) * 100 if raw else 0
-        logger.info(
-            f"payload raw={len(raw)} compressed={len(compressed)} "
-            f"ratio={ratio:.1f}%"
-        )
+
+        if self._use_gzip:
+            compressed = gzip.compress(raw)
+            ratio = len(compressed) / len(raw) * 100 if raw else 0
+            logger.info(
+                f"payload raw={len(raw)} compressed={len(compressed)} "
+                f"ratio={ratio:.1f}%"
+            )
+            return requests.post(
+                url=url,
+                data=compressed,
+                headers=self._get_headers(compressed=True),
+                timeout=timeout,
+            )
+
+        logger.info(f"payload size={len(raw)} bytes")
         return requests.post(
             url=url,
-            data=compressed,
-            headers=self._get_headers(compressed=True),
+            data=raw,
+            headers=self._get_headers(),
             timeout=timeout,
         )
 
