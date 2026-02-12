@@ -1,11 +1,11 @@
 # mzidentml-reader
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-mzidentml-reader processes mzIdentML 1.2.0 and 1.3.0 files with the primary aim of extracting crosslink information. 
+mzidentml-reader processes mzIdentML 1.2.0 and 1.3.0 files with the primary aim of extracting crosslink information.
 It has three use cases:
 1. to validate mzIdentML files against the criteria given here: https://www.ebi.ac.uk/pride/markdownpage/crosslinking
 2. to extract information on crosslinked residue pairs and output it in a form more easily used by modelling software
-3. to populate the database that is accessed by [crosslinking-api](https://github.com/Rappsilber-Laboratory/crosslinking-api)
+3. to populate the database that is accessed by [crosslinking-api](https://github.com/PRIDE-Archive/crosslinking-api)
 
 It uses the pyteomics library (https://pyteomics.readthedocs.io/en/latest/index.html) as the underlying parser for mzIdentML.
 Results are written into a relational database (PostgreSQL or SQLite) using sqlalchemy.
@@ -38,50 +38,77 @@ pipenv shell
 
 ## Usage
 
-process_dataset.py is the entry point and running it with the -h option will give a list of options.
+`process_dataset` is the CLI entry point. Run it with `-h` to see all options:
 
 ```
-python parser.py -h
+process_dataset -h
 ```
 
-alternative:
+Alternative (from the repository root):
 ```
 python -m parser -h
 ```
 
+### CLI Options Reference
+
+One of the following mutually exclusive options is required:
+
+| Option | Description |
+|--------|-------------|
+| `-p, --pxid <ID> [ID ...]` | ProteomeXchange accession(s), e.g. `PXD000001` or numbers only. Multiple IDs can be space-separated. |
+| `-f, --ftp <URL>` | Process files from the specified FTP location. |
+| `-d, --dir <PATH>` | Process files in the specified local directory. |
+| `-v, --validate <PATH>` | Validate an mzIdentML file or all files in a directory. Exits after first failure. |
+| `--seqsandresiduepairs <PATH>` | Extract sequences and crosslinked residue pairs as JSON. Requires `-j`. |
+
+Additional options:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-t, --temp <PATH>` | Temp folder for downloaded files or the sqlite DB. | System temp directory |
+| `-n, --nopeaklist` | Skip peak list file checks. Works with `-d` and `-v` only. | Off |
+| `-w, --writer <db\|api>` | Save data to database (`db`) or API (`api`). Used with `-p`, `-f`, `-d`. | `db` |
+| `-j, --json <FILE>` | Output JSON filename. Required when using `--seqsandresiduepairs`. | |
+| `-i, --identifier <ID>` | Project identifier for the database. Defaults to PXD accession or directory name. | |
+| `--dontdelete` | Don't delete downloaded data after processing. | Off |
 
 ### 1. Validate a dataset
 
-Run process_dataset.py with the -v option to validate a dataset, the argument is the path to a specific mzIdentML file
-or to a directory containing multiple mzIdentML files, in which case all of them will be validated. To pass, all the peaklist files 
-referenced must be in the same directory as the mzIdentML file(s). The converter will create an sqlite database in the 
-temporary folder which is used in the validation process, the temporary folder can be specified with the -t option.  
+Run with the `-v` option to validate a dataset. The argument is the path to a specific mzIdentML file
+or to a directory containing multiple mzIdentML files, in which case all of them will be validated. To pass, all the peaklist files
+referenced must be in the same directory as the mzIdentML file(s). The converter will create an sqlite database in the
+temporary folder which is used in the validation process, the temporary folder can be specified with the `-t` option.
+
+Use `-n` to skip peak list file checks (useful when peak list files are not available locally):
 
 Examples:
 ```
-python parser.py -v ~/mydata
+process_dataset -v ~/mydata
 ```
 ```
-python parser.py -v ~/mydata/mymzid.mzid -t ~/mytempdir
+process_dataset -v ~/mydata/mymzid.mzid -t ~/mytempdir
+```
+```
+process_dataset -v ~/mydata/mymzid.mzid -n
 ```
 
 The result is written to the console. If the data fails validation but the error message is not informative,
-please open an issue on the github repository: https://github.com/Rappsilber-Laboratory/mzidentml-reader/issues
+please open an issue on the github repository: https://github.com/PRIDE-Archive/mzidentml-reader/issues
 
 ### 2. Extract summary of crosslinked residue pairs
 
-Run process_dataset.py with the --seqsandresiduepairs option to extract a summary of search sequences and
-crosslinked residue pairs. The output is json which is written to a file specified with the -j option (required).
-The argument is the path to an mZIdentML file or a directory containing multiple mzIdentML files, in which case
+Run with the `--seqsandresiduepairs` option to extract a summary of search sequences and
+crosslinked residue pairs. The output is JSON which is written to a file specified with the `-j` option (required).
+The argument is the path to an mzIdentML file or a directory containing multiple mzIdentML files, in which case
 all of them will be processed.
 
 Examples:
 ```
-python parser.py --seqsandresiduepairs ~/mydata -j output.json -t ~/mytempdir
+process_dataset --seqsandresiduepairs ~/mydata -j output.json -t ~/mytempdir
 ```
 
 ```
-python parser.py --seqsandresiduepairs ~/mydata/mymzid.mzid -j output.json
+process_dataset --seqsandresiduepairs ~/mydata/mymzid.mzid -j output.json
 ```
 
 #### Programmatic access
@@ -113,9 +140,9 @@ for pair in data['residue_pairs']:
 
 The returned dictionary has two keys:
 - `sequences`: List of protein sequences (id, file, sequence, accession)
-- `residue_pairs`: List of crosslinked residue pairs (prot1, prot1_acc, pos1, prot2, prot2_acc, pos2, match_ids, files, mod_accs) 
+- `residue_pairs`: List of crosslinked residue pairs (prot1, prot1_acc, pos1, prot2, prot2_acc, pos2, match_ids, files, mod_accs)
 
-### 3. populate the crosslinking-api database
+### 3. Populate the crosslinking-api database
 
 #### Create the database
 
@@ -156,7 +183,7 @@ password=your_password_here
 port=5432
 ```
 
-#### Create the database schema 
+#### Create the database schema
 
 run create_db_schema.py to create the database tables:
 ```
@@ -166,18 +193,52 @@ python parser/database/create_db_schema.py
 #### Populate the database
 To parse a test dataset:
 ```
-python parser.py -d ~/PXD038060
+process_dataset -d ~/PXD038060
 ```
 
-The command line options that populate the database are -d, -f and -p. Only one of these can be used.
-The -d option is the directory to process files from,
-the -f option is the path to an ftp directory containing mzIdentML files,
-the -p option is a ProteomeXchange identifier or a list of ProteomeXchange identifiers separated by spaces.
+The command line options that populate the database are `-d`, `-f` and `-p`. Only one of these can be used.
+- `-d` — process files in a local directory
+- `-f` — process files from an FTP location
+- `-p` — process by ProteomeXchange identifier(s), space-separated
 
-The -i option is the project identifier to use in the database. It will default to the PXD accession or the 
+The `-i` option sets the project identifier in the database. It defaults to the PXD accession or the
 name of the directory containing the mzIdentML file.
 
+The `-w` option selects the writer method (`db` for database, `api` for API). Defaults to `db`.
 
+Use `--dontdelete` to keep downloaded data after processing.
+
+Examples:
+```
+process_dataset -p PXD038060
+```
+```
+process_dataset -p PXD038060 PXD000001 -w api
+```
+```
+process_dataset -f ftp://ftp.jpostdb.org/JPST001914/ -i JPST001914
+```
+
+### 4. Cleanup noncov modifications
+
+The `cleanup_noncov` module removes invalid crosslink donor/acceptor modifications (`location="-1"`) from mzIdentML files.
+This is useful for pre-processing files that contain noncovalent modifications that are not properly located.
+
+#### Programmatic access
+
+```python
+from parser.cleanup_noncov import cleanup_noncov, cleanup_noncov_gz
+
+# For plain .mzid files
+peps_cleaned, mods_removed, sii_cleaned = cleanup_noncov("input.mzid", "output.mzid")
+
+# For gzipped .mzid.gz files
+peps_cleaned, mods_removed, sii_cleaned = cleanup_noncov_gz("input.mzid.gz", "output.mzid.gz")
+
+print(f"Peptides cleaned: {peps_cleaned}")
+print(f"Modifications removed: {mods_removed}")
+print(f"SpectrumIdentificationItems cleaned: {sii_cleaned}")
+```
 
 ## Development
 
