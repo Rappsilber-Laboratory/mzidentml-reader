@@ -255,6 +255,9 @@ def validate(validate_arg: str, temp_dir: str, nopeaklist: bool) -> None:
             f"SUCCESS! Directory {validate_arg} validation complete. Exciting."
         )
     else:
+        if validate_arg.endswith(".mzid.gz"):
+            logger.info(f"Unzipping {os.path.basename(validate_arg)}")
+            validate_arg = MzIdParser.extract_mzid(validate_arg)
         if not validate_file(validate_arg, temp_dir, nopeaklist=nopeaklist):
             print(f"Validation failed for file {validate_arg}. Exiting.")
             sys.exit(1)
@@ -591,14 +594,18 @@ def convert_dir(
         gc.collect()
         if file.endswith((".mzid", ".mzid.gz")):
             logger.info(f"Processing {file}")
+            file_path = os.path.join(local_dir, file)
+            if file.endswith(".mzid.gz"):
+                logger.info(f"Unzipping {file}")
+                file_path = MzIdParser.extract_mzid(file_path)
             conn_str = get_conn_str()
             if writer_method.lower() == "api":
                 writer = APIWriter(pxid=project_identifier)
             else:
                 writer = DatabaseWriter(conn_str, pxid=project_identifier)
-            if schema_validate(os.path.join(local_dir, file)):
+            if schema_validate(file_path):
                 id_parser = MzIdParser(
-                    os.path.join(local_dir, file),
+                    file_path,
                     peaklist_dir,
                     writer,
                     logger,
