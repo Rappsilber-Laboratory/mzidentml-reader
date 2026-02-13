@@ -1,17 +1,73 @@
-"""schema_validate.py - Validate an mzIdentML file against 1.2.0 or 1.3.0 schema."""
+"""schema_validate.py - Validate an mzIdentML file against XSD schema using xmllint."""
 
-from importlib.resources import as_file, files
-from multiprocessing import Pool
+import os
+import subprocess
+import xml.etree.ElementTree as ET
 from typing import List, Tuple
 
-from lxml import etree
+# Path to schema files relative to this script
+SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "..", "schema")
+
+# Supported schema files
+SUPPORTED_SCHEMAS = [
+    "mzIdentML1.0.0.xsd",
+    "mzIdentML1.1.0.xsd",
+    "mzIdentML1.1.1.xsd",
+    "mzIdentML1.2.0.xsd",
+    "mzIdentML1.3.0.xsd",
+]
+
+VALIDATION_TIMEOUT = 7200  # 2 hours
+
+def _extract_schema_version(schema_fname: str) -> str | None:
+    """Extract version string from schema filename (e.g., '1.2.0' from 'mzIdentML1.2.0.xsd')."""
+    if schema_fname.startswith("mzIdentML") and schema_fname.endswith(".xsd"):
+        return schema_fname[9:-4]  # Remove 'mzIdentML' prefix and '.xsd' suffix
+    return None
+
+
+def _get_schema_fname(xml_file: str) -> Tuple[str | None, str | None, List[str]]:
+    """Extract the schema filename from the root element's attributes.
+
+    Uses iterparse to read only the root element without loading the full file.
+
+    Returns:
+        Tuple of (schema_fname, schema_version, messages)
+    """
+    messages = []
+    schema_location = None
+
+    try:
+        for event, elem in ET.iterparse(xml_file, events=("start",)):
+            # First 'start' event is the root element
+            schema_location = elem.attrib.get(
+                "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation"
+            )
+            if not schema_location:
+                schema_location = elem.attrib.get(
+                    "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
+                )
+            break
+    except ET.ParseError as e:
+        messages.append(f"Failed to parse root element: {e}")
+        return None, None, messages
+
+    if not schema_location:
+        messages.append("No schema location found in the XML document.")
+        return None, None, messages
+
+    schema_parts = schema_location.split()
+    if len(schema_parts) % 2 != 0:
+        messages.append("Invalid schema location format.")
+        return None, None, messages
+
+    schema_url = schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
+    schema_fname = schema_url.split("/")[-1]
+    return schema_fname, _extract_schema_version(schema_fname), messages
 
 
 def schema_validate(xml_file: str) -> bool:
-    """Validate an mzIdentML file against 1.2.0 or 1.3.0 schema.
-
-    Runs validation in a subprocess to ensure memory is fully released
-    after validation completes (lxml/libxml2 holds memory otherwise).
+    """Validate an mzIdentML file against its declared schema.
 
     Args:
         xml_file: Path to the mzIdentML file
@@ -19,80 +75,80 @@ def schema_validate(xml_file: str) -> bool:
     Returns:
         True if the XML is valid, False otherwise
     """
-    with Pool(1) as pool:
-        success, messages = pool.apply(_schema_validate_impl, (xml_file,))
-
+    success, schema_version, messages = schema_validate_with_messages(xml_file)
     for msg in messages:
         print(msg)
-
     return success
 
 
-def _schema_validate_impl(xml_file: str) -> Tuple[bool, List[str]]:
-    """Internal implementation of schema validation (runs in subprocess).
+def schema_validate_with_messages(xml_file: str, timeout: int = VALIDATION_TIMEOUT) -> Tuple[bool, str | None, List[str]]:
+    """Validate an mzIdentML file and return validation messages.
+
+    Uses xmllint with --stream to avoid high memory usage.
+
+    Args:
+        xml_file: Path to the mzIdentML file
+        timeout: Maximum seconds to wait for validation (default 7200)
 
     Returns:
-        Tuple of (success, list of messages to print)
+        Tuple of (success, schema_version, list of error/info messages)
     """
-    messages = []
-    # Parse the XML file
-    with open(xml_file, "r") as xml:
-        xml_doc = etree.parse(xml)
+    schema_fname, schema_version, messages = _get_schema_fname(xml_file)
+    if schema_fname is None:
+        return False, schema_version, messages
 
-    # Extract schema location from the XML (xsi:schemaLocation or xsi:noNamespaceSchemaLocation)
-    root = xml_doc.getroot()
-    schema_location = root.attrib.get(
-        "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation"
-    )
+    if schema_fname not in SUPPORTED_SCHEMAS:
+        messages.append(f"Unsupported schema: {schema_fname}")
+        return False, schema_version, messages
 
-    if not schema_location:
-        schema_location = root.attrib.get(
-            "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
+    schema_path = os.path.join(SCHEMA_DIR, schema_fname)
+    if not os.path.exists(schema_path):
+        messages.append(f"Schema file not found: {schema_path}")
+        return False, schema_version, messages
+
+    # Check well-formedness first (xmllint gives poor schema errors for malformed XML)
+    try:
+        result = subprocess.run(
+            ["xmllint", "--stream", "--noout", xml_file],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
+    except FileNotFoundError:
+        messages.append("xmllint not found. Install libxml2-utils.")
+        return False, schema_version, messages
+    except subprocess.TimeoutExpired:
+        messages.append(f"Well-formedness check timed out after {timeout}s")
+        return False, schema_version, messages
 
-    if not schema_location:
-        messages.append("No schema location found in the XML document.")
-        return False, messages
-
-    # The schemaLocation attribute may contain multiple namespaces and schema locations.
-    # Typically, it's formatted as "namespace schemaLocation" pairs.
-    schema_parts = schema_location.split()
-    if len(schema_parts) % 2 != 0:
-        messages.append("Invalid schema location format.")
-        return False, messages
-
-    # Assuming a single namespace-schema pair for simplicity
-    schema_url = (
-        schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
-    )
-
-    # just take the file name from the url
-    schema_fname = schema_url.split("/")[-1]
-    # if not 1.2.0 or 1.3.0
-    if schema_fname not in ["mzIdentML1.2.0.xsd", "mzIdentML1.3.0.xsd"]:
-        messages.append(
-            f"Sorry, we're only supporting 1.2.0 and 1.3.0 (the ones that "
-            f"contain crosslinks). Rejected schema file: {schema_fname}"
-        )
-        return False, messages
+    if result.returncode != 0:
+        stderr_lines = result.stderr.strip().splitlines()
+        messages.append("XML is not well-formed. First 20 errors:")
+        for line in stderr_lines[:20]:
+            messages.append(line)
+        return False, schema_version, messages
 
     try:
-        schema_path = files("schema").joinpath(schema_fname)
-        with as_file(schema_path) as schema_file:
-            with open(schema_file, "r") as schema_file_stream:
-                schema_root = etree.XML(schema_file_stream.read())
-            schema = etree.XMLSchema(schema_root)
-
-            if schema.validate(xml_doc):
-                return True, messages
-            else:
-                messages.append("XML is invalid. First 20 errors:")
-                for error in schema.error_log[:20]:
-                    messages.append(
-                        f"Error: {error.message}, Line: {error.line}"
-                    )
-                return False, messages
-
+        result = subprocess.run(
+            ["xmllint", "--schema", schema_path, "--stream", "--noout", xml_file],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
     except FileNotFoundError:
-        messages.append("Schema file not found.")
-        return False, messages
+        messages.append("xmllint not found. Install libxml2-utils.")
+        return False, schema_version, messages
+    except subprocess.TimeoutExpired:
+        messages.append(f"Validation timed out after {timeout}s")
+        return False, schema_version, messages
+
+    if result.returncode == 0:
+        return True, schema_version, messages
+
+    # xmllint writes errors to stderr
+    stderr_lines = result.stderr.strip().splitlines()
+    messages.append("XML is invalid. First 20 errors:")
+    for line in stderr_lines[:20]:
+        messages.append(line)
+    return False, schema_version, messages
+

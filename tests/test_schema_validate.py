@@ -99,10 +99,10 @@ class TestSchemaValidate:
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
                 "<MzIdentML "
-                'xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" '
+                'xmlns="http://psidev.info/psi/pi/mzIdentML/1.4" '
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-                'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 '
-                'https://example.com/mzIdentML1.1.0.xsd">\n'
+                'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.4 '
+                'https://example.com/mzIdentML1.4.0.xsd">\n'
                 "</MzIdentML>\n"
             )
             temp_file = f.name
@@ -112,8 +112,8 @@ class TestSchemaValidate:
             assert result is False
 
             captured = capsys.readouterr()
-            assert "only supporting 1.2.0 and 1.3.0" in captured.out
-            assert "mzIdentML1.1.0.xsd" in captured.out
+            assert "Unsupported schema" in captured.out
+            assert "mzIdentML1.4.0.xsd" in captured.out
         finally:
             os.unlink(temp_file)
 
@@ -134,9 +134,7 @@ class TestSchemaValidate:
             temp_file = f.name
 
         try:
-            # Mock the files() function to raise FileNotFoundError
-            with mock.patch("parser.schema_validate.files") as mock_files:
-                mock_files.side_effect = FileNotFoundError("Schema not found")
+            with mock.patch("os.path.exists", return_value=False):
                 result = schema_validate(temp_file)
                 assert result is False
 
@@ -170,27 +168,65 @@ class TestSchemaValidate:
 
             captured = capsys.readouterr()
             assert "XML is invalid" in captured.out
-            assert "Error:" in captured.out
+            assert "error" in captured.out.lower()
         finally:
             os.unlink(temp_file)
 
-    def test_malformed_xml(self):
+    def test_malformed_xml(self, capsys):
         """Test validation of malformed XML file."""
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".mzid", delete=False
         ) as f:
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                "<MzIdentML>\n"
+                "<MzIdentML "
+                'xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" '
+                'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+                'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 '
+                "https://www.psidev.info/sites/default/files/2018-10/"
+                'mzIdentML1.2.0.xsd">\n'
                 "  <UnclosedTag>\n"  # Missing closing tag
                 "</MzIdentML>\n"
             )
             temp_file = f.name
 
         try:
-            # Malformed XML should raise an exception during parsing
-            with pytest.raises(Exception):
-                schema_validate(temp_file)
+            result = schema_validate(temp_file)
+            assert result is False
+
+            captured = capsys.readouterr()
+            assert "XML is not well-formed" in captured.out
+        finally:
+            os.unlink(temp_file)
+
+    def test_malformed_xml_truncated(self, capsys):
+        """Test validation of truncated XML file with valid start."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".mzid", delete=False
+        ) as f:
+            f.write(
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                "<MzIdentML "
+                'xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" '
+                'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+                'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 '
+                "https://www.psidev.info/sites/default/files/2018-10/"
+                'mzIdentML1.2.0.xsd">\n'
+                "  <cvList>\n"
+                '    <cv id="PSI-MS" fullName="PSI-MS" URI="https://example.com"/>\n'
+                "  </cvList>\n"
+                "  <AnalysisSoftwareList>\n"
+                '    <AnalysisSoftware id="AS_1" name="test">\n'
+                # Truncated - missing closing tags
+            )
+            temp_file = f.name
+
+        try:
+            result = schema_validate(temp_file)
+            assert result is False
+
+            captured = capsys.readouterr()
+            assert "XML is not well-formed" in captured.out
         finally:
             os.unlink(temp_file)
 

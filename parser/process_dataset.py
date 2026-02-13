@@ -596,22 +596,25 @@ def convert_dir(
                 writer = APIWriter(pxid=project_identifier)
             else:
                 writer = DatabaseWriter(conn_str, pxid=project_identifier)
-            id_parser = MzIdParser(
-                os.path.join(local_dir, file),
-                peaklist_dir,
-                writer,
-                logger,
-            )
-            try:
-                id_parser.parse()
-                # logger.info(id_parser.warnings + "\n")
-            except Exception as e:
-                logger.error(f"Error parsing {file}")
-                logger.exception(e)
-                raise e
-            finally:
-                _dispose_writer_engine(writer)
-
+            if schema_validate(os.path.join(local_dir, file)):
+                id_parser = MzIdParser(
+                    os.path.join(local_dir, file),
+                    peaklist_dir,
+                    writer,
+                    logger,
+                )
+                try:
+                    id_parser.parse()
+                    # logger.info(id_parser.warnings + "\n")
+                except Exception as e:
+                    logger.error(f"Error parsing {file}")
+                    logger.exception(e)
+                    raise e
+                finally:
+                    _dispose_writer_engine(writer)
+            else:
+                print(f"File {file} is schema invalid.")
+                sys.exit(1)
 
 def validate_file(
     filepath: str, temp_dir: str, nopeaklist: bool = False

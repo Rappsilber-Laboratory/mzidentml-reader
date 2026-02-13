@@ -5,7 +5,7 @@ mzidentml-reader processes mzIdentML 1.2.0 and 1.3.0 files with the primary aim 
 It has three use cases:
 1. to validate mzIdentML files against the criteria given here: https://www.ebi.ac.uk/pride/markdownpage/crosslinking
 2. to extract information on crosslinked residue pairs and output it in a form more easily used by modelling software
-3. to populate the database that is accessed by [crosslinking-api](https://github.com/PRIDE-Archive/crosslinking-api)
+3. to populate the database that is accessed by [crosslinking-api](https://github.com/Rappsilber-Laboratory/crosslinking-api)
 
 It uses the pyteomics library (https://pyteomics.readthedocs.io/en/latest/index.html) as the underlying parser for mzIdentML.
 Results are written into a relational database (PostgreSQL or SQLite) using sqlalchemy.
@@ -93,7 +93,7 @@ process_dataset -v ~/mydata/mymzid.mzid -n
 ```
 
 The result is written to the console. If the data fails validation but the error message is not informative,
-please open an issue on the github repository: https://github.com/PRIDE-Archive/mzidentml-reader/issues
+please open an issue on the github repository: https://github.com/Rappsilber-Laboratory/mzidentml-reader/issues
 
 ### 2. Extract summary of crosslinked residue pairs
 

@@ -336,8 +336,8 @@ class MZMLReader(SpectraReader):
         """
         # MS:1001530 mzML unique identifier:
         # Used for referencing mzML. The value of the spectrum ID attribute is referenced directly.
-        if self.spectrum_id_format_accession == "MS:1001530":
-            spec = self._reader.get_by_id(spec_id)
+        # if self.spectrum_id_format_accession == "MS:1001530":
+        spec = self._reader.get_by_id(spec_id)
 
         # ToDo: not supported for now.
         # # MS:1000768 Thermo nativeID format:
@@ -359,10 +359,10 @@ class MZMLReader(SpectraReader):
         #     raise SpectrumIdFormatError(
         #         "Combination of spectrumIdFormat and FileFormat not supported.")
 
-        else:
-            raise SpectrumIdFormatError(
-                f"{self.spectrum_id_format_accession} not supported for mzML!"
-            )
+        # else:
+        #     raise SpectrumIdFormatError(
+        #         f"{self.spectrum_id_format_accession} not supported for mzML!"
+        #     )
 
         return self._convert_spectrum(spec)
 
