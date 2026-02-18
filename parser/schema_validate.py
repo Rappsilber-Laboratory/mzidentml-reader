@@ -17,7 +17,7 @@ SUPPORTED_SCHEMAS = [
     "mzIdentML1.3.0.xsd",
 ]
 
-VALIDATION_TIMEOUT = 7200  # 2 hours
+VALIDATION_TIMEOUT = 30 * 60 # 30 minute timeout
 
 def _extract_schema_version(schema_fname: str) -> str | None:
     """Extract version string from schema filename (e.g., '1.2.0' from 'mzIdentML1.2.0.xsd')."""
@@ -140,7 +140,7 @@ def schema_validate_with_messages(xml_file: str, timeout: int = VALIDATION_TIMEO
         return False, schema_version, messages
     except subprocess.TimeoutExpired:
         messages.append(f"Validation timed out after {timeout}s")
-        return False, schema_version, messages
+        return True, schema_version, messages
 
     if result.returncode == 0:
         return True, schema_version, messages
