@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $app_name
+  labels:
+    app: $app_name
+spec:
+  replicas: $k8s_replicas
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: $app_name
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: $app_name
+    spec:
+      imagePullSecrets:
+        - name: $DOCKER_PULL_SECRET
+      volumes:
+        - name: application-db-config
+          configMap:
+            name: $DATABASE_INI
+            items:
+              - key: database.ini
+                path: database.ini
+        - name: application-logging-config
+          configMap:
+            name: $LOGGING_INI
+            items:
+              - key: logging.ini
+                path: logging.ini
+        - name: cache-volume
+          emptyDir:
+              sizeLimit: 100Gi
+        - name: xi-converter-logs-volume
+          persistentVolumeClaim:
+            claimName: xi-converter-logs-pvc
+      containers:
+        - name: $app_name
+          image: $IMAGE
+          imagePullPolicy: Always
+          command: [ "python3" ]
+          args: [ "main.py" ]
+          ports:
+            - containerPort: $PORT
+              name: http
+              protocol: TCP
+          env:
+            - name: DATABASE_INI_PATH
+              value: /home/appuser/database.ini
+          volumeMounts:
+            - name: application-db-config
+              mountPath: /home/appuser/database.ini
+              subPath: database.ini
+              readOnly: true
+            - name: application-logging-config
+              mountPath: /home/appuser/logging.ini
+              subPath: logging.ini
+              readOnly: true
+            - name: cache-volume
+              mountPath: /home/appuser/mzId_convertor_temp
+            - name: xi-converter-logs-volume
+              mountPath: /home/appuser/logs/$app_name
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $app_name-service
+spec:
+  selector:
+    app: $app_name
+  ports:
+    - port: $PORT
+      protocol: TCP
+      targetPort: http
+  type: ClusterIP
