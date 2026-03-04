@@ -87,6 +87,14 @@ class PeakListWrapper:
                 self.reader = MGFReader(spectrum_id_format_accession)
             elif self.is_ms2():
                 self.reader = MS2Reader(spectrum_id_format_accession)
+            elif self.is_raw():
+                from parser.peaklistReader.RawFileReader import RawFileReader
+
+                self.reader = RawFileReader(spectrum_id_format_accession)
+            else:
+                raise PeakListParseError(
+                    f"Unsupported file format: {file_format_accession}"
+                )
             # load the file
             self.reader.load(pl_path)
         except Exception as e:
@@ -123,6 +131,9 @@ class PeakListWrapper:
         """
         return self.file_format_accession == "MS:1001466"
 
+    def is_raw(self) -> bool:
+        """Check if the peak list is in Thermo RAW format (MS:1000563)."""
+        return self.file_format_accession == "MS:1000563"
 
 
 class SpectraReader(ABC):
@@ -280,35 +291,19 @@ class MZMLReader(SpectraReader):
             Spectrum object
         """
         # MS:1001530 mzML unique identifier:
-        # Used for referencing mzML. The value of the spectrum ID attribute is referenced directly.
-        # if self.spectrum_id_format_accession == "MS:1001530":
+        # Used for referencing mzML. The value of the spectrum ID attribute
+        # is referenced directly.
+        # MS:1000768 Thermo nativeID format:
+        # controllerType=xsd:nonNegativeInt controllerNumber=xsd:positiveInt
+        # scan=xsd:positiveInt — also referenced directly in mzML output.
+        if self.spectrum_id_format_accession not in (
+            "MS:1001530",
+            "MS:1000768",
+        ):
+            raise SpectrumIdFormatError(
+                f"{self.spectrum_id_format_accession} not supported for mzML"
+            )
         spec = self._reader.get_by_id(spec_id)
-
-        # ToDo: not supported for now.
-        # # MS:1000768 Thermo nativeID format:
-        # # controllerType=xsd:nonNegativeInt controllerNumber=xsd:positiveInt scan=xsd:positiveInt
-        # elif self.spectrum_id_format_accession == 'MS:1000768':
-        #     raise SpectrumIdFormatError(
-        #         "Combination of spectrumIdFormat and FileFormat not supported.")
-        #
-        # # MS:1000774 multiple peak list nativeID format - zero based
-        # elif self.spectrum_id_format_accession == 'MS:1000774':
-        #     raise SpectrumIdFormatError(
-        #         "Combination of spectrumIdFormat and FileFormat not supported.")
-        #
-        # # MS:1000775 single peak list nativeID format
-        # # The nativeID must be the same as the source file ID.
-        # # Used for referencing peak list files with one spectrum per file,
-        # # typically in a folder of PKL or DTAs, where each sourceFileRef is different.
-        # elif self.spectrum_id_format_accession == 'MS:1000775':
-        #     raise SpectrumIdFormatError(
-        #         "Combination of spectrumIdFormat and FileFormat not supported.")
-
-        # else:
-        #     raise SpectrumIdFormatError(
-        #         f"{self.spectrum_id_format_accession} not supported for mzML!"
-        #     )
-
         return self._convert_spectrum(spec)
 
     def load(
