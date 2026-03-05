@@ -197,13 +197,12 @@ class MzIdParser:
             spectrum_id_format = sp_datum["SpectrumIDFormat"].accession
 
             if self.peak_list_dir:
-                peak_list_file_path = self.peak_list_dir + peak_list_file_name
+                peak_list_file_path = os.path.join(self.peak_list_dir, peak_list_file_name)
                 # noinspection PyBroadException
                 try:
                     peak_list_reader = PeakListWrapper(
                         peak_list_file_path, file_format, spectrum_id_format
                     )
-                # ToDo: gz/zip code parts could do with refactoring
                 except Exception:
                     # try gz version
                     try:
@@ -231,7 +230,7 @@ class MzIdParser:
                             )
                         except Exception:
                             raise MzIdParseException(
-                                "Missing peak list file: %s"
+                                "Missing peak list file or peak list parse failure: %s"
                                 % peak_list_file_path
                             )
 
