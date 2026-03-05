@@ -2,7 +2,6 @@
 PeakListWrapper.py
 """
 
-import gzip
 import io
 import ntpath
 import os
@@ -124,60 +123,6 @@ class PeakListWrapper:
         """
         return self.file_format_accession == "MS:1001466"
 
-    @staticmethod
-    def extract_gz(in_file: str) -> str:
-        """Extract gzipped file.
-
-        Args:
-            in_file: Path to gzipped file
-
-        Returns:
-            Path to extracted file
-        """
-        if in_file.endswith(".gz"):
-            in_f = gzip.open(in_file, "rb")
-            in_file = in_file.replace(".gz", "")
-            out_f = open(in_file, "wb")
-            out_f.write(in_f.read())
-            in_f.close()
-            out_f.close()
-
-            return in_file
-
-        else:
-            raise Exception(f"unsupported file extension for: {in_file}")
-
-    @staticmethod
-    def unzip_peak_lists(zip_file: str, out_path: str = ".") -> str:
-        """Unzip and return resulting folder.
-
-        Args:
-            zip_file: Path to archive to unzip
-            out_path: Where to extract the files
-
-        Returns:
-            Path to resulting folder
-        """
-        if zip_file.endswith(".zip"):
-            with zipfile.ZipFile(zip_file, "r") as zip_ref:
-                unzip_path = os.path.join(
-                    str(out_path), f"{ntpath.basename(zip_file)}_unzip"
-                )
-                os.makedirs(unzip_path, exist_ok=True)
-                base = os.path.abspath(unzip_path) + os.sep
-                for member in zip_ref.infolist():
-                    dest = os.path.abspath(
-                        os.path.join(unzip_path, member.filename)
-                    )
-                    if not dest.startswith(base):
-                        raise Exception(
-                            f"Illegal path in zip: {member.filename}"
-                        )
-                    zip_ref.extract(member, unzip_path)
-            return unzip_path
-
-        else:
-            raise Exception(f"unsupported file extension for: {zip_file}")
 
 
 class SpectraReader(ABC):

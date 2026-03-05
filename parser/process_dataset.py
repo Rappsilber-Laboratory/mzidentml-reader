@@ -15,6 +15,7 @@ import tempfile
 import time
 import traceback
 from parser.APIWriter import APIWriter
+from parser.compression import extract_mzid_archive
 from parser.DatabaseWriter import DatabaseWriter
 from parser.MzIdParser import MzIdParser, SqliteMzIdParser
 from parser.schema_validate import schema_validate
@@ -235,9 +236,14 @@ def validate(validate_arg: str, temp_dir: str, nopeaklist: bool) -> None:
     if os.path.isdir(validate_arg):
         print(f"Validating directory: {validate_arg}")
         for file in os.listdir(validate_arg):
+            if file.endswith(".mzid") and os.path.exists(
+                os.path.join(validate_arg, file + ".gz")
+            ):
+                logger.info(f"Skipping {file} (compressed counterpart present)")
+                continue
             if file.endswith(".mzid.gz"):
                 logger.info(f"Unzipping {file}")
-                file = MzIdParser.extract_mzid(os.path.join(validate_arg, file))
+                file = extract_mzid_archive(os.path.join(validate_arg, file))
             if file.endswith(".mzid"):
                 file_to_validate = os.path.join(validate_arg, file)
                 if validate_file(
@@ -257,7 +263,7 @@ def validate(validate_arg: str, temp_dir: str, nopeaklist: bool) -> None:
     else:
         if validate_arg.endswith(".mzid.gz"):
             logger.info(f"Unzipping {os.path.basename(validate_arg)}")
-            validate_arg = MzIdParser.extract_mzid(validate_arg)
+            validate_arg = extract_mzid_archive(validate_arg)
         if not validate_file(validate_arg, temp_dir, nopeaklist=nopeaklist):
             print(f"Validation failed for file {validate_arg}. Exiting.")
             sys.exit(1)
@@ -593,11 +599,18 @@ def convert_dir(
     for file in os.listdir(local_dir):
         gc.collect()
         if file.endswith((".mzid", ".mzid.gz")):
+            # Skip a plain .mzid if a .mzid.gz counterpart exists — the gz
+            # will be processed separately, extracting over this stale copy.
+            if file.endswith(".mzid") and os.path.exists(
+                os.path.join(local_dir, file + ".gz")
+            ):
+                logger.info(f"Skipping {file} (compressed counterpart present)")
+                continue
             logger.info(f"Processing {file}")
             file_path = os.path.join(local_dir, file)
             if file.endswith(".mzid.gz"):
                 logger.info(f"Unzipping {file}")
-                file_path = MzIdParser.extract_mzid(file_path)
+                file_path = extract_mzid_archive(file_path)
             conn_str = get_conn_str()
             if writer_method.lower() == "api":
                 writer = APIWriter(pxid=project_identifier)

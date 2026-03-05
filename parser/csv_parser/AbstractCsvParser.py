@@ -3,6 +3,7 @@
 import abc
 import os
 from parser import SimpleFASTA
+from parser.compression import extract_gz
 from parser.peaklistReader.PeakListWrapper import PeakListWrapper
 from time import time
 
@@ -237,9 +238,7 @@ class AbstractCsvParser(abc.ABC):
                 # try gz version
                 try:
                     peak_list_reader = PeakListWrapper(
-                        PeakListWrapper.extract_gz(
-                            peak_list_file_path + ".gz"
-                        ),
+                        extract_gz(peak_list_file_path + ".gz"),
                         file_format_accession,
                         spectrum_id_format_accesion,
                     )

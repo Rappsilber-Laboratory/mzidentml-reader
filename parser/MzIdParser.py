@@ -3,7 +3,6 @@ converts mzIdentML files to DB entries
 """
 
 import base64
-import gzip
 import json
 import logging
 import ntpath
@@ -11,8 +10,8 @@ import os
 import re
 import struct
 import traceback
-import zipfile
 from parser.APIWriter import APIWriter
+from parser.compression import extract_gz, extract_zip_safe
 from parser.peaklistReader.PeakListWrapper import PeakListWrapper
 from time import time
 from typing import Any
@@ -82,11 +81,14 @@ class MzIdParser:
         self.contains_crosslinks = False
 
         self.warnings = set()
-        self.write_new_upload()  # overridden (empty function) in xiSPEC subclass
 
-        # init self.mzid_reader (pyteomics mzid reader)
         if self.mzid_path.endswith(".gz") or self.mzid_path.endswith(".zip"):
-            self.mzid_path = MzIdParser.extract_mzid(self.mzid_path)
+            raise ValueError(
+                f"MzIdParser requires a decompressed .mzid file; got: {self.mzid_path}. "
+                "Decompress with compression.extract_mzid_archive() before passing to MzIdParser."
+            )
+
+        self.write_new_upload()  # overridden (empty function) in xiSPEC subclass
 
         self.logger.info("reading mzid - start " + self.mzid_path)
         start_time = time()
@@ -206,9 +208,7 @@ class MzIdParser:
                     # try gz version
                     try:
                         peak_list_reader = PeakListWrapper(
-                            PeakListWrapper.extract_gz(
-                                peak_list_file_path + ".gz"
-                            ),
+                            extract_gz(peak_list_file_path + ".gz"),
                             file_format,
                             spectrum_id_format,
                         )
@@ -220,19 +220,7 @@ class MzIdParser:
                                     self.peak_list_dir, file
                                 )
                                 try:
-                                    with zipfile.ZipFile(
-                                        zip_file, "r"
-                                    ) as zip_ref:
-                                        base = os.path.abspath(self.peak_list_dir) + os.sep
-                                        for member in zip_ref.infolist():
-                                            dest = os.path.abspath(
-                                                os.path.join(self.peak_list_dir, member.filename)
-                                            )
-                                            if not dest.startswith(base):
-                                                raise MzIdParseException(
-                                                    f"Illegal path in zip: {member.filename}"
-                                                )
-                                            zip_ref.extract(member, self.peak_list_dir)
+                                    extract_zip_safe(zip_file, self.peak_list_dir)
                                 except IOError:
                                     raise IOError()
                         try:
@@ -1130,66 +1118,6 @@ class MzIdParser:
 
         return result
 
-    # ToDo: refactor gz/zip
-    # split into two functions
-    @staticmethod
-    def extract_mzid(archive):
-        """Extract the files from the archive.
-
-        Args:
-            archive: Path to archive file
-
-        Returns:
-            Path to extracted mzid file
-        """
-        if archive.endswith("zip"):
-            unzip_path = archive + "_unzip/"
-            with zipfile.ZipFile(archive, "r") as zip_ref:
-                base = os.path.abspath(unzip_path) + os.sep
-                for member in zip_ref.infolist():
-                    dest = os.path.abspath(
-                        os.path.join(unzip_path, member.filename)
-                    )
-                    if not dest.startswith(base):
-                        raise MzIdParseException(
-                            f"Illegal path in zip: {member.filename}"
-                        )
-                    zip_ref.extract(member, unzip_path)
-
-            return_file_list = []
-
-            for root, dir_names, file_names in os.walk(unzip_path):
-                file_names = [f for f in file_names if not f[0] == "."]
-                dir_names[:] = [d for d in dir_names if not d[0] == "."]
-                for file_name in file_names:
-                    os.path.join(root, file_name)
-                    if file_name.lower().endswith(".mzid"):
-                        return_file_list.append(root + "/" + file_name)
-                    else:
-                        raise IOError("unsupported file type: %s" % file_name)
-
-            # todo - looks like potential problem here?
-            if len(return_file_list) > 1:
-                raise Exception("more than one mzid file found!")
-
-            return return_file_list[0]
-
-        elif archive.endswith("gz"):
-            in_f = gzip.open(archive, "rb")
-            archive = archive.replace(".gz", "")
-            out_f = open(archive, "wb")
-            try:
-                out_f.write(in_f.read())
-            except IOError:
-                raise Exception("Zip archive error: %s" % archive)
-
-            in_f.close()
-            out_f.close()
-
-            return archive
-
-        else:
-            raise Exception("unsupported file type: %s" % archive)
 
 
 def iterfind_when(

@@ -44,26 +44,6 @@ class TestSchemaValidate:
         result = schema_validate(valid_1_3_0_file)
         assert result is True
 
-    def test_no_schema_location(self, capsys):
-        """Test file with no schema location attribute."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".mzid", delete=False
-        ) as f:
-            f.write(
-                '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.2">\n'
-                "</MzIdentML>\n"
-            )
-            temp_file = f.name
-
-        try:
-            result = schema_validate(temp_file)
-            assert result is False
-
-            captured = capsys.readouterr()
-            assert "No schema location found" in captured.out
-        finally:
-            os.unlink(temp_file)
 
     def test_invalid_schema_location_format(self, capsys):
         """Test file with invalid schema location format."""

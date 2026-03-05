@@ -17,7 +17,7 @@ SUPPORTED_SCHEMAS = [
     "mzIdentML1.3.0.xsd",
 ]
 
-VALIDATION_TIMEOUT = 30 * 60 # 30 minute timeout
+VALIDATION_TIMEOUT = 10 * 60 # 10 minute timeout
 
 def _extract_schema_version(schema_fname: str) -> str | None:
     """Extract version string from schema filename (e.g., '1.2.0' from 'mzIdentML1.2.0.xsd')."""
@@ -30,12 +30,14 @@ def _get_schema_fname(xml_file: str) -> Tuple[str | None, str | None, List[str]]
     """Extract the schema filename from the root element's attributes.
 
     Uses iterparse to read only the root element without loading the full file.
+    Falls back to the required 'version' attribute if no schemaLocation is present.
 
     Returns:
         Tuple of (schema_fname, schema_version, messages)
     """
     messages = []
     schema_location = None
+    version = None
 
     try:
         for event, elem in ET.iterparse(xml_file, events=("start",)):
@@ -47,23 +49,30 @@ def _get_schema_fname(xml_file: str) -> Tuple[str | None, str | None, List[str]]
                 schema_location = elem.attrib.get(
                     "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
                 )
+            version = elem.attrib.get("version")
             break
     except ET.ParseError as e:
         messages.append(f"Failed to parse root element: {e}")
         return None, None, messages
 
-    if not schema_location:
-        messages.append("No schema location found in the XML document.")
-        return None, None, messages
+    if schema_location:
+        schema_parts = schema_location.split()
+        if len(schema_parts) % 2 != 0:
+            messages.append("Invalid schema location format.")
+            return None, None, messages
+        schema_url = schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
+        schema_fname = schema_url.split("/")[-1]
+        return schema_fname, _extract_schema_version(schema_fname), messages
 
-    schema_parts = schema_location.split()
-    if len(schema_parts) % 2 != 0:
-        messages.append("Invalid schema location format.")
-        return None, None, messages
+    # Fall back to the version attribute (required by the mzIdentML spec)
+    if version:
+        schema_fname = f"mzIdentML{version}.xsd"
+        return schema_fname, version, messages
 
-    schema_url = schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
-    schema_fname = schema_url.split("/")[-1]
-    return schema_fname, _extract_schema_version(schema_fname), messages
+    messages.append(
+        "No schema location or version attribute found in the XML document."
+    )
+    return None, None, messages
 
 
 def schema_validate(xml_file: str) -> bool:
