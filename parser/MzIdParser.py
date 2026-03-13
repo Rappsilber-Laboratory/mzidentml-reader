@@ -197,7 +197,7 @@ class MzIdParser:
             spectrum_id_format = sp_datum["SpectrumIDFormat"].accession
 
             if self.peak_list_dir:
-                peak_list_file_path = self.peak_list_dir + peak_list_file_name
+                peak_list_file_path = os.path.join(self.peak_list_dir, peak_list_file_name)
                 # noinspection PyBroadException
                 try:
                     peak_list_reader = PeakListWrapper(
