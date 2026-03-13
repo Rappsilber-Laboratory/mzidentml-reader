@@ -1,1 +1,138 @@
 ProjectAccession,File, ExclusionReason
+PXD001593,75CWS_1apr10undigestedF059901.mzid.gz,No MS:1002511 CV param found
+PXD003532,Experimentmaxquantresults_22_2w1fromQEPlus2_12172015_22_2w1.mzid.gz,No MS:1002511 CV param found
+PXD003718,nativecoIPonORF102108_scaffiold_mascot_giardia.mzid.gz,No MS:1002511 CV param found
+PXD004473,CW2098_mzIdentML.mzid,No MS:1002511 CV param found
+PXD004583,20130828sr_5195_nonrev_c_2F238826.mzid.gz,No MS:1002511 CV param found
+PXD004722,p3.mzid,No MS:1002511 CV param found
+PXD005461,OBJ7470_F058521.mzid.gz,No MS:1002511 CV param found
+PXD005786,272209_293_ZNF532_CBioTAP_IP.mzid,No MS:1002511 CV param found
+PXD006079,273479_42977.mzid,No MS:1002511 CV param found
+PXD006938,2_NFS1-Fxn-IscU_MarkleyF016506.mzid.gz,No MS:1002511 CV param found
+PXD007716,F074077.mzid.gz,No MS:1002511 CV param found
+PXD007836,peptides_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD008680,20140107U2OSCytoD_B_F019267.mzid,No MS:1002511 CV param found
+PXD009239,FileName_DCP-SM-3Phos3.rawF031157.mzid.gz,No MS:1002511 CV param found
+PXD009641,ID16365_01_E749_3008_030315F056130.mzid.gz,No MS:1002511 CV param found
+PXD012225,Mudpit_20180316_LSchmitt_invivoclot1_HCDFTF101896.mzid.gz,No MS:1002511 CV param found
+PXD012466,mapeixiang-NSSO-3.mzid.gz,No MS:1002511 CV param found
+PXD012753,F009919_MouseSkinDermis_Urea_YoungOldOVX.mzid.gz,No MS:1002511 CV param found
+PXD012754,F010084_MouseSkinDermis_NaCl_YoungOld.mzid.gz,No MS:1002511 CV param found
+PXD012759,PR2.mzid,No MS:1002511 CV param found
+PXD013890,20151203lc_8000_7723_1F228833.mzid.gz,No MS:1002511 CV param found
+PXD013896,20170823lc_9968_17195_7F255991.mzid.gz,No MS:1002511 CV param found
+PXD013897,20170907lc_10007_16653_05F256529.mzid.gz,No MS:1002511 CV param found
+PXD013899,20160108lc_8081_42357_5F229979.mzid.gz,No MS:1002511 CV param found
+PXD014142,GPM00500045194.mzid.gz,No MS:1002511 CV param found
+PXD014359,C_Lee_141014_CRM_dialysis_NCE28_2.mzid,Incorrect Spectra data reference C_Lee_141014_CRM_dialysis_NCE28_2.raw
+PXD014520,B160812_12_Lumos_LK_IN_190_Francis_Rib_Fra_HCD_DT_3.mzid,Incorrect Spectra data reference B160812_12_Lumos_LK_IN_190_Francis_Rib_Fra_HCD_DT_3.raw
+PXD014523,xQuest_BSA_DSS_HCD.mzid,xQuest_BSA_DSS_HCD.mzid:88570: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': No match found for key-sequence ['MS'] of keyref '{http://psidev.info/psi/pi/mzIdentML/1.2}FK_CVlist5'. | xQuest_BSA_DSS_HCD.mzid fails to validate | File xQuest_BSA_DSS_HCD.mzid is sc...
+PXD015037,SQFT35A2_peptides_1_1_0.mzid,No MS:1002511 CV param found
+PXD015981,H_FFPE_1B.mzid.gz,No MS:1002511 CV param found
+PXD015982,20160605_Fisher_Skin_1257_3050_forearm_CHAPS_01F100800.mzid.gz,No MS:1002511 CV param found
+PXD016224,190621_JJanetzko_Kobilka_9905_JJ4.raw_20191106_Byonic.mzid.gz,No MS:1002511 CV param found
+PXD016442,20190124rs_11676_HA10299_6F272364.mzid.gz,No MS:1002511 CV param found
+PXD016446,20180911rs_11287_WB_5F268353.mzid.gz,No MS:1002511 CV param found
+PXD016448,20190819_rs_12428_WB_A_FTHCDF279679.mzid.gz,No MS:1002511 CV param found
+PXD016487,20180625rs_HA_CHMP7_2_180626220839F265651.mzid.gz,No MS:1002511 CV param found
+PXD017290,Mudpit_MassSpectrumF001689.mzid.gz,No MS:1002511 CV param found
+PXD017792,XLG729RE1aE2o.mzid.gz,No MS:1002511 CV param found
+PXD017873,20200302_072815_CK_X02_01.raw.mzid.gz,No MS:1002511 CV param found
+PXD018291,pDSPE-Ecoli-chargestate-3-7.mzid.gz,No MS:1002511 CV param found
+PXD018600,CSL9686A8RW2_C2_115_peptides_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD018687,SHR72_4_DC190_02.mzid.gz,No MS:1002511 CV param found
+PXD018701,180209_A9.mzid.gz,No MS:1002511 CV param found
+PXD018935,Ribosome_2A.mzid,No MS:1002511 CV param found
+PXD019017,TRY_AMPK_DSSO_XL-MS.mzid,No MS:1002511 CV param found
+PXD019713,mapx_Xlink_17-SIM.mzid.gz,No MS:1002511 CV param found
+PXD019771,200115_A3.mzid.gz,No MS:1002511 CV param found
+PXD019868,mapeixiang_xlink_CD38_1-100.mzid.gz,No MS:1002511 CV param found
+PXD019944,mapx_xlink_13-4.mzid.gz,No MS:1002511 CV param found
+PXD020418,Arr_both.mzid.gz,No MS:1002511 CV param found
+PXD020666,peptides_lz_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD020958,Ya113-DTASelect-filter.mzid.gz,No MS:1002511 CV param found
+PXD022163,Mudpit_11_21_1.mzid.gz,No MS:1002511 CV param found
+PXD022279,2019-11-18-2019-07-19-yj-Keriann-Backus-Jian-3.mzid.gz,No MS:1002511 CV param found
+PXD022440,IP_60min_Plk1F064865.mzid.gz,No MS:1002511 CV param found
+PXD023525,E1oE2oCDI.mzid.gz,No MS:1002511 CV param found
+PXD024065,S282Bpa_Trp-AspN_Xlink1__F002059_.mzid.gz,No MS:1002511 CV param found
+PXD024253,155-pDSBE-Ecoli-Z2.mzid.gz,No MS:1002511 CV param found
+PXD024373,2018_7_52_30_AM_File_Size__774968583__Byte___F022342_.mzid.gz,No MS:1002511 CV param found
+PXD025728,RORg2_SRC3_XL-MS_Search.mzid,File RORg2_SRC3_XL-MS_Search.mzid is schema valid. | Error parsing RORg2_SRC3_XL-MS_Search.mzid | Missing peak list file: RORg2_SRC3_XL-MS_Search.mzML
+PXD026101,RWPE1_mTOR_Veh_Rep3.mzid.gz,No MS:1002511 CV param found
+PXD026603,GPR158-RGS7-Gb5_CONSENSUS.mzid,File GPR158-RGS7-Gb5_CONSENSUS.mzid is schema valid. | Error parsing GPR158-RGS7-Gb5_CONSENSUS.mzid | Missing peak list file: GPR158-RGS7-Gb5_CONSENSUS.mzML
+PXD026622,Anish_iTRAQ_3h_SPSMS3_fraction1_12.mzid.gz,No MS:1002511 CV param found
+PXD026674,2019-12-01-140min-200nl-yj-Yan-Xue-Steve-Jacobsen-C0l0-1-floral-A.mzid.gz,No MS:1002511 CV param found
+PXD026829,BphP_dimer_DSP_ionexclusion.mzid.gz,BphP_dimer_DSP_ionexclusion.mzid:11303: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'name' is required but missing. | BphP_dimer_DSP_ionexclusion.mzid fails to validate | File BphP_dimer_DSP_ionexclusion.mzid is schema invalid.
+PXD027149,09_Cp1.mzid.gz,No MS:1002511 CV param found
+PXD027655,F271205.mzid,No MS:1002511 CV param found
+PXD028039,Chymo_Xi1.7.4.mzid,File Chymo_Xi1.7.4.mzid is schema valid. | Error parsing Chymo_Xi1.7.4.mzid | Missing peak list file: 3324_AJ_Tetramer-Chymo.mgf
+PXD028685,20201231_012_ZR_Smirnova_H7.mzid.gz,No MS:1002511 CV param found
+PXD028919,20200125_bck8417_20-2034_Troyanovsky_02__F026012_.mzid.gz,No MS:1002511 CV param found
+PXD029252,20210203_QExHFX3_RSLC10_DSSO_mainlib_rep1_KK_1FDR_linkandCSM_Xi1.7.6.5.mzid,File 20210203_QExHFX3_RSLC10_DSSO_mainlib_rep1_KK_1FDR_linkandCSM_Xi1.7.6.5.mzid is schema valid. | Error parsing 20210203_QExHFX3_RSLC10_DSSO_mainlib_rep1_KK_1FDR_linkandCSM_Xi1.7.6.5.mzid | Missing peak list file: 20210203_QExHFX3_RSLC10_DSSO_mainlib_rep1.mgf
+PXD029749,211021L-BY116_518_CF-trypsin_13-iso-2OH.mzid.gz,No MS:1002511 CV param found
+PXD029833,export_Mzidentml_F002452.mzid.gz,No MS:1002511 CV param found
+PXD030048,export_Mzidentml_F002160.mzid.gz,No MS:1002511 CV param found
+PXD031159,20200112_MBPZ_E24B3_E25Q_AFFI_4A7K8Q.mzid.gz,No MS:1002511 CV param found
+PXD031166,001_EL-X-007_F20__F066054_.mzid.gz,No MS:1002511 CV param found
+PXD031261,Mudpit_3_1__3_1.mzid.gz,No MS:1002511 CV param found
+PXD031385,MSB51071A__F172197_.mzid.gz,No MS:1002511 CV param found
+PXD031668,mzIdentML_Nsp1_DSSO_2pc_boostBetween_consec.mzid,File mzIdentML_Nsp1_DSSO_2pc_boostBetween_consec.mzid is schema valid. | Error parsing mzIdentML_Nsp1_DSSO_2pc_boostBetween_consec.mzid | Missing peak list file: recal_B201023_06_Lumos_FS_IN_120_nsp1_DSSO_3C_pepSEC_frac6_rep1.mzML
+PXD033004,UbK48PT-UbG76C.mzid,No MS:1002511 CV param found
+PXD033175,04122018_Gavis_YP_285_egfp_glo_unXlink.mzid.gz,No MS:1002511 CV param found
+PXD033615,549268_L_3_73Ah_Input.mzid.gz,No MS:1002511 CV param found
+PXD035201,20210625_Rix_Yi_Exclusion_FBDD_95_1.raw__F002658_.mzid.gz,No MS:1002511 CV param found
+PXD035655,peptides_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD037894,PD1280_SuTex_FBDD_Soto_bio1_run2.raw__F003497_.mzid.gz,No MS:1002511 CV param found
+PXD037983,F3_peptides_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD038128,190627_VLopez_Khavari_9923_PR1_VLP_PBS_m3.raw_20190702_Byonic.mzid.gz,No MS:1002511 CV param found
+PXD039612,All_Rat-rewiewed.mzid.gz,No MS:1002511 CV param found
+PXD041334,560153_293_Myc_NBioTAP_IP.mzid.gz,No MS:1002511 CV param found
+PXD041955,20211219_Eclipse_LC4_G2_Trap_backflash_Peplib20_DSBSO_pl2_MS3_OTOTIT.mzid.gz,File 20211219_Eclipse_LC4_G2_Trap_backflash_Peplib20_DSBSO_pl2_MS3_OTOTIT.mzid is schema valid. | Error parsing 20211219_Eclipse_LC4_G2_Trap_backflash_Peplib20_DSBSO_pl2_MS3_OTOTIT.mzid | Missing peak list file: 20211219_Eclipse_LC4_G2_Trap_backflash_Peplib20_DSBSO_pl2_MS3_OTOTIT.mzML
+PXD042282,2023_6_35_51_PM_FileSize_1732075728_Byte_F012915.mzid,No MS:1002511 CV param found
+PXD043595,AT_CNBr_peptides_1_1_0.mzid,No MS:1002511 CV param found
+PXD044574,GPM22200017988.mzid.gz,No MS:1002511 CV param found
+PXD044625,20230130_AH_LLQE_HekMIV_IAAUV_IAA4UV_TC20220526_230206.raw_20230208_Byonic_C.mzid.gz,No MS:1002511 CV param found
+PXD046634,CtRoco-GTPgS.mzid.gz,File CtRoco-GTPgS.mzid is schema valid. | Error parsing CtRoco-GTPgS.mzid | Missing peak list file: CtRoco-GTPgS.mzML
+PXD046895,R545-Neg-Ctrl_Craig_F020245.mzid.gz,No MS:1002511 CV param found
+PXD048297,peptides_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD048298,peptides_1_1_0.mzid.gz,No MS:1002511 CV param found
+PXD051423,E240411_AMC_Mart_LDLandLDLR_SulfoSDA_007and013Ratios_AllData_Xi1.8_filtered_searches_4CCFrags_5TotFrags.mzid.gz,E240411_AMC_Mart_LDLandLDLR_SulfoSDA_007and013Ratios_AllData_Xi1.8_filtered_searches_4CCFrags_5TotFrags.mzid:10152: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E240411_AMC_Mart_LDLandLDLR_SulfoSDA_007and013Rati...
+PXD051588,E240418_AMC_Mart_LDLandLDLR_SulfoSDA_05and1Ratios_pepSEC_A2toB6_AspN_pepSEC_A3toB6_Xi1.8_ManFilt_4CCFrags_5TotFrags.mzid.gz,E240418_AMC_Mart_LDLandLDLR_SulfoSDA_05and1Ratios_pepSEC_A2toB6_AspN_pepSEC_A3toB6_Xi1.8_ManFilt_4CCFrags_5TotFrags.mzid:8279: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E240418_AMC_Mart_LDLandLDLR_SulfoSDA_05...
+PXD051688,2023-1215_Ecoli-TMT18plex-TotalPeptideAmount.mzid.gz,No MS:1002511 CV param found
+PXD051742,DSSO-carbamate_QBP_monolinks.mzid.gz,No MS:1002511 CV param found
+PXD051913,2023_3_13_28_AM_FileSize_1261863517_Byte_F012933.mzid.gz,No MS:1002511 CV param found
+PXD052138,PYR_infected_GIGYF2_NAQ444_J100_201204_4.mzid.gz,No MS:1002511 CV param found
+PXD052584,20210222_AN_DSSOXL_HisSARSCoV2N_20-2_soln2b_5x.mzid.gz,File 20210222_AN_DSSOXL_HisSARSCoV2N_20-2_soln2b_5x.mzid is schema valid. | Error parsing 20210222_AN_DSSOXL_HisSARSCoV2N_20-2_soln2b_5x.mzid | Missing peak list file: 20210222_AN_DSSOXL_HisSARSCoV2N_20-2_soln2b_5x.mzML
+PXD052832,Mito_merged_norm.mzid.gz,File Mito_merged_norm.mzid is schema valid. | Error parsing Mito_merged_norm.mzid | Missing peak list file: recal_B191112_14_HF_PR_IN_135_mito_DSSO_SOL_SCX22_hSAX03+04_rep1_NLmeth.mgf
+PXD053253,Experiment_JMS987_S4_TH_WT_1_from_JMS987_Fusion_S4_TH_WT_1.mzid.gz,No MS:1002511 CV param found
+PXD053415,Experiment_RA912_6MAM_from_RA912_66MAM.mzid.gz,No MS:1002511 CV param found
+PXD053636,QE42774GFH.mzid.gz,File QE42774GFH.mzid is schema valid. | Error parsing QE42774GFH.mzid | Missing peak list file: QE42774GFH.mzML
+PXD054199,P1129-4.mzid.gz,No MS:1002511 CV param found
+PXD055077,SUMOylation_PhoX_TBDSPP_FAIMS_140823.mzid.gz,File SUMOylation_PhoX_TBDSPP_FAIMS_140823.mzid is schema valid. | Error parsing SUMOylation_PhoX_TBDSPP_FAIMS_140823.mzid | list index out of range
+PXD055169,OrbitrapLUMOS_20220618_23_ITMSms3cid.mzid,No MS:1002511 CV param found
+PXD055405,mascot_daemon_merge__20161015_HM_Substrates_FN_her2-18_.mzid.gz,No MS:1002511 CV param found
+PXD055411,mascot_daemon_merge__fn_n3_bt474_matrixes_.mzid.gz,No MS:1002511 CV param found
+PXD055603,mascot_daemon_merge__2016116_HM_SENSITIVE_T_LAP_.mzid.gz,No MS:1002511 CV param found
+PXD056510,E240411_AMC_Mart_LDLandLDLR_SulfoSDA_007and013Ratios_AllData_Xi1.8_filtered_searches_4CCFrags_5TotFrags.mzid.gz,E240411_AMC_Mart_LDLandLDLR_SulfoSDA_007and013Ratios_AllData_Xi1.8_filtered_searches_4CCFrags_5TotFrags.mzid:10152: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E240411_AMC_Mart_LDLandLDLR_SulfoSDA_007and013Rati...
+PXD059096,Cas9_PhoX_amountOpti_FAIMS_final.mzid,Cas9_PhoX_amountOpti_FAIMS_final.mzid:20200528: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}PeptideEvidence': Duplicate key-sequence ['PE_910_XL_-2237_910_1_5_8364348392468163032'] in unique identity-constraint '{http://psidev.info/psi/pi/mzIdentML/1.2}PK_SCPEPEVLIPEPE...
+PXD059974,WT_DMSO_Mono_DDA.mzid.gz,No MS:1002511 CV param found
+PXD060469,4A_DSSO_Mono_XL_1.mzid,File 4A_DSSO_Mono_XL_1.mzid is schema valid. | Error parsing 4A_DSSO_Mono_XL_1.mzid | Missing peak list file: 4A_DSSO_Mono_XL_1.mzML
+PXD061187,2666_04.mzid,No MS:1002511 CV param found
+PXD061667,Separase-Scc1_Fusion_Cohesin_SulfoSDA_inVitroXL_pepSEC_SelectedDiaz_KYST_3mc_Ccm-SDA_3mods_250127_FDR_1-5_Boost_ResiduePairs_between_100contaminants.mzid,Separase-Scc1_Fusion_Cohesin_SulfoSDA_inVitroXL_pepSEC_SelectedDiaz_KYST_3mc_Ccm-SDA_3mods_250127_FDR_1-5_Boost_ResiduePairs_between_100contaminants.mzid:7503: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | Separa...
+PXD062002,5mM_DSG.mzid,No MS:1002511 CV param found
+PXD063329,peptides_1_1_1.mzid,No MS:1002511 CV param found
+PXD064792,651006_r1_BCOR_C_ITD_INPUT.mzid,No MS:1002511 CV param found
+PXD065365,peptides_1_1_0.mzid,No MS:1002511 CV param found
+PXD065516,T8_15_combined.mzid,File T8_15_combined.mzid is schema valid. | Error parsing T8_15_combined.mzid | Link site for peptide 405_MSbs3_amiSbs3_amiAR_15_LNKLCcmAERK_-1_-1_NonCovalent_p1 is negative
+PXD065782,5073_IM_Tetramer_DSBU_Tryp.mzid,File 5073_IM_Tetramer_DSBU_Tryp.mzid is schema valid. | Error parsing 5073_IM_Tetramer_DSBU_Tryp.mzid | Missing peak list file: 5073_IM_C1_C4_Tryp_S05.mgf
+PXD065858,E250221_AMC_rpn1_IP_C1_IV_Dose_pepSEC_A3toB6_ReSearchWithPeaks_Xi1.8_filt_PSU_OR_3SU_BTWNs.mzid,E250221_AMC_rpn1_IP_C1_IV_Dose_pepSEC_A3toB6_ReSearchWithPeaks_Xi1.8_filt_PSU_OR_3SU_BTWNs.mzid:1742: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E250221_AMC_rpn1_IP_C1_IV_Dose_pepSEC_A3toB6_ReSearchWithPeaks_X...
+PXD065859,E250317_AMC_HSA_C1_IV_Enriched_Uncleaved_pepSEC_A4toB6_ReSearchedWithPeaks_Xi1.8.annotations_filt_ONLY_PS.mzid,E250317_AMC_HSA_C1_IV_Enriched_Uncleaved_pepSEC_A4toB6_ReSearchedWithPeaks_Xi1.8.annotations_filt_ONLY_PS.mzid:196: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E250317_AMC_HSA_C1_IV_Enriched_Uncleaved_pepSEC_A4...
+PXD065869,20250422_HSA_C1_HCD_Dose_BothBioReps_ReSearch_Xi1.8_PSU_OR_3SU.mzid,20250422_HSA_C1_HCD_Dose_BothBioReps_ReSearch_Xi1.8_PSU_OR_3SU.mzid:1349: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | 20250422_HSA_C1_HCD_Dose_BothBioReps_ReSearch_Xi1.8_PSU_OR_3SU.mzid:1349: Schemas validity e...
+PXD065870,E240906_AMC_HSA_VSD_IV_pepSEC_A5toB6_Xi1.8_ManFilt_3CC_5Tot.mzid,E240906_AMC_HSA_VSD_IV_pepSEC_A5toB6_Xi1.8_ManFilt_3CC_5Tot.mzid:315: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E240906_AMC_HSA_VSD_IV_pepSEC_A5toB6_Xi1.8_ManFilt_3CC_5Tot.mzid:315: Schemas validity error : E...
+PXD065871,E250328_AMC_rpn1_IP_VDB_IV_Dose_pepSEC_A3toB6_Filt_3CC_5Tot.mzid,E250328_AMC_rpn1_IP_VDB_IV_Dose_pepSEC_A3toB6_Filt_3CC_5Tot.mzid:2214: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E250328_AMC_rpn1_IP_VDB_IV_Dose_pepSEC_A3toB6_Filt_3CC_5Tot.mzid:2214: Schemas validity error :...
+PXD065946,E250225_AMC_rpn1_IP_SDA_IV_Dose_pepSEC_A3toB6_TwoInj_filt_FixedFasta_3CC_5Tot.mzid,E250225_AMC_rpn1_IP_SDA_IV_Dose_pepSEC_A3toB6_TwoInj_filt_FixedFasta_3CC_5Tot.mzid:4240: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E250225_AMC_rpn1_IP_SDA_IV_Dose_pepSEC_A3toB6_TwoInj_filt_FixedFasta_3CC_5Tot...
+PXD065956,E241202_AMC_HeLa_C1_IS_Sol_Enriched_pepSEC_Uncleaved_A3toB6_Xi1.8_comb_filt_1CC_3Tot.mzid,E241202_AMC_HeLa_C1_IS_Sol_Enriched_pepSEC_Uncleaved_A3toB6_Xi1.8_comb_filt_1CC_3Tot.mzid:13818: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E241202_AMC_HeLa_C1_IS_Sol_Enriched_pepSEC_Uncleaved_A3toB6_Xi1.8_com...
+PXD065958,E240905_AMC_Ecoli_C1_InSitu_Enriched_pepSEC_A5toB6_Xi1.8_3CCFrags.mzid,E240905_AMC_Ecoli_C1_InSitu_Enriched_pepSEC_A5toB6_Xi1.8_3CCFrags.mzid:344: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E240905_AMC_Ecoli_C1_InSitu_Enriched_pepSEC_A5toB6_Xi1.8_3CCFrags.mzid:344: Schemas validi...
+PXD065961,E250501_AMC_HSA_Only_C1_IV_Enriched_pepSEC_A3toB6_PeaksAnnotated_Xi1.8_filt_PSU_OR_5SU.mzid,E250501_AMC_HSA_Only_C1_IV_Enriched_pepSEC_A3toB6_PeaksAnnotated_Xi1.8_filt_PSU_OR_5SU.mzid:251: Schemas validity error : Element '{http://psidev.info/psi/pi/mzIdentML/1.2}cvParam': The attribute 'cvRef' is required but missing. | E250501_AMC_HSA_Only_C1_IV_Enriched_pepSEC_A3toB6_PeaksAnnotated_Xi1....
+PXD071719,20250815_B3-HB-GAPDH_Xlink_6Plex_TMT_Fusion_NoXlinkX_Relaxed3.mzid,File 20250815_B3-HB-GAPDH_Xlink_6Plex_TMT_Fusion_NoXlinkX_Relaxed3.mzid is schema valid. | Error parsing 20250815_B3-HB-GAPDH_Xlink_6Plex_TMT_Fusion_NoXlinkX_Relaxed3.mzid | list index out of range
