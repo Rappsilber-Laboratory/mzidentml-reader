@@ -441,6 +441,25 @@ class MzIdParser:
                             enzyme_name_el, "MS:1001045"
                         )
                         if len(enzyme_name) > 1:
+                            # Some producers add the "unspecific cleavage" /
+                            # "no cleavage" flag cvParams alongside the real
+                            # enzyme name. Both are is_a children of
+                            # MS:1001045 in PSI-MS, but only real enzymes
+                            # have a has_regexp edge in the OBO. Use that
+                            # to disambiguate.
+                            with_regexp = {
+                                k: v
+                                for k, v in enzyme_name.items()
+                                if any(
+                                    key == "has_regexp"
+                                    for _, _, key in self.ms_obo.out_edges(
+                                        k.accession, keys=True
+                                    )
+                                )
+                            }
+                            if len(with_regexp) == 1:
+                                enzyme_name = with_regexp
+                        if len(enzyme_name) > 1:
                             raise MzIdParseException(
                                 f"Error when parsing EnzymeName from Enzyme:\n{json.dumps(enzyme)}"
                             )
