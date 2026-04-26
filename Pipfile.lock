@@ -872,12 +872,11 @@
         },
         "pyteomics": {
             "hashes": [
-                "sha256:382aeaa8b921bdd2a7e5b4aa9fe46c6184bb43701205a845b4b861ee3e88f46a",
-                "sha256:5155e1d2581845926e49b0abd0be8cfd6ea45ffd3511958b805347037c5934c8",
-                "sha256:9b8008ad8d8bbbc6856c4e804bc88e018df44809cd9a86900862b311e760862d"
+                "sha256:ae87f6ba02ee735b06ae56e1ac85a37051aa503e0c9dbfee650c8a7107d08f57",
+                "sha256:e0984dbafd5d545c15ed05f1c6565f76a1f61a56adc76a8a842d4427b3a0388a"
             ],
             "index": "pypi",
-            "version": "==4.7.5"
+            "version": "==4.7.3"
         },
         "python-dateutil": {
             "hashes": [
