@@ -329,6 +329,11 @@ class MzIdParser:
                 frag_tol = sid_protocol["FragmentTolerance"]
                 frag_tol_plus = frag_tol["search tolerance plus value"]
                 frag_tol_value = re.sub("[^0-9,.]", "", str(frag_tol_plus))
+                if not frag_tol_value:
+                    # cvParam is present but has no value= attribute, so
+                    # there's no numeric tolerance to record. Fall through
+                    # to the default-10-ppm fallback below.
+                    raise KeyError("FragmentTolerance has no numeric value")
                 if frag_tol_plus.unit_info.lower() == "parts per million":
                     frag_tol_unit = "ppm"
                 elif frag_tol_plus.unit_info.lower() == "dalton":
