@@ -63,9 +63,24 @@ def _create_temp_database(temp_dir: str, filename: str) -> str:
     filewithoutext = os.path.splitext(filename)[0]
     temp_database = os.path.join(str(temp_dir), f"{filewithoutext}.db")
 
-    # Delete the temp database if it exists
-    if os.path.exists(temp_database):
-        os.remove(temp_database)
+    # Delete the temp database (and any SQLite sidecar files) if they exist.
+    # Sidecars can be left behind by a previous crashed run; if SQLite
+    # recovers them against a stale schema the failure is obscure.
+    for path in (
+        temp_database,
+        f"{temp_database}-journal",
+        f"{temp_database}-wal",
+        f"{temp_database}-shm",
+    ):
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError as e:
+                raise RuntimeError(
+                    f"Could not remove pre-existing temp DB file {path}. "
+                    "Close any program holding it (SQLite browser, "
+                    "previous run) and retry."
+                ) from e
 
     return f"sqlite:///{temp_database}"
 
