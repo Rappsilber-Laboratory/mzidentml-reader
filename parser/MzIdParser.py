@@ -28,6 +28,9 @@ from pyteomics.auxiliary import cvquery
 from pyteomics.xml import _local_name
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+_PSI_MS_OBO_URL = "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"
+_PSI_MS_OBO_LOCAL = os.path.join(os.path.dirname(__file__), "..", "obo", "psi-ms.obo")
+
 
 class MzIdParseException(Exception):
     """Exception raised when parsing mzIdentML files."""
@@ -102,9 +105,13 @@ class MzIdParser:
         self.writer = writer
         self.logger = logger
 
-        self.ms_obo = obonet.read_obo(
-            "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"
-        )
+        try:
+            self.ms_obo = obonet.read_obo(_PSI_MS_OBO_URL)
+        except Exception:
+            self.logger.warning(
+                "Could not fetch psi-ms.obo from network; using bundled fallback."
+            )
+            self.ms_obo = obonet.read_obo(_PSI_MS_OBO_LOCAL)
 
         self.contains_crosslinks = False
         self.is_de_novo = False
