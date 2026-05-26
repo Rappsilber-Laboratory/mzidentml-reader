@@ -26,7 +26,7 @@ from pyteomics.auxiliary import cvquery
 
 # noinspection PyProtectedMember
 from pyteomics.xml import _local_name
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 
 class MzIdParseException(Exception):
@@ -829,8 +829,9 @@ class MzIdParser:
                 try:
                     self.writer.write_data("peptideevidence", pep_evidences)
                     pep_evidences = []
-                except Exception as e:
-                    raise e
+                except IntegrityError as e:
+                    self._raise_for_pe_unique_violation(e, pep_evidences)
+                    raise
 
         # write the remaining data
         if not self.mzid_reader._offset_index["PeptideEvidence"]:
@@ -844,8 +845,9 @@ class MzIdParser:
         elif pep_evidences:
             try:
                 self.writer.write_data("peptideevidence", pep_evidences)
-            except Exception as e:
-                raise e
+            except IntegrityError as e:
+                self._raise_for_pe_unique_violation(e, pep_evidences)
+                raise
 
         self.mzid_reader.reset()
 
@@ -854,6 +856,122 @@ class MzIdParser:
                 round(time() - start_time, 2)
             )
         )
+
+    def _raise_for_pe_unique_violation(
+        self, err: IntegrityError, batch: list[dict[str, Any]]
+    ) -> None:
+        """If `err` is a mzIdentML §6.49 PE uniqueness violation, raise a clear exception.
+
+        The DB enforces one row per (upload_id, peptide_id, dbsequence_id,
+        pep_start) — the §6.49 invariant. To identify the offending triple we
+        try, in order:
+          1. PG's diag.message_detail (zero extra DB work — Postgres path).
+          2. The failing batch itself, for an in-batch duplicate.
+          3. A single SELECT against the table to find which row in the batch
+             was already committed by a previous batch (cross-batch case for
+             backends without rich error diagnostics, e.g. SQLite).
+
+        No-op if `err` isn't the PE uniqueness violation.
+        """
+        orig = getattr(err, "orig", None)
+        diag = getattr(orig, "diag", None)
+        is_pg_pe = (
+            diag is not None
+            and getattr(diag, "constraint_name", None) == "peptideevidence_pkey"
+        )
+        orig_text = str(orig) if orig is not None else ""
+        is_other_pe = (
+            "UNIQUE constraint failed" in orig_text
+            and "peptideevidence" in orig_text
+        )
+        if not (is_pg_pe or is_other_pe):
+            return
+
+        reverse = {v: k for k, v in self.pep_ref_to_pep_id_lookup.items()}
+        peptide_id: Any = None
+        dbseq: Any = None
+        pep_start: Any = None
+
+        # 1. Postgres diag.
+        if is_pg_pe:
+            match = re.search(
+                r"\(upload_id, peptide_id, dbsequence_id, pep_start\)="
+                r"\(([^,]+), ([^,]+), (.+), ([^)]+)\) already exists",
+                getattr(diag, "message_detail", "") or "",
+            )
+            if match is not None:
+                _, pid, dbseq, pep_start = match.groups()
+                peptide_id = int(pid)
+
+        # 2. In-batch scan.
+        if peptide_id is None and batch:
+            seen: dict[tuple[Any, Any, Any], int] = {}
+            for row in batch:
+                key = (row["peptide_id"], row["dbsequence_id"], row["pep_start"])
+                if key in seen:
+                    peptide_id, dbseq, pep_start = key
+                    break
+                seen[key] = 1
+
+        # 3. Cross-batch SELECT.
+        if peptide_id is None and batch and hasattr(self.writer, "engine"):
+            from sqlalchemy import MetaData, Table, select, tuple_
+
+            try:
+                table = Table(
+                    "peptideevidence",
+                    MetaData(),
+                    autoload_with=self.writer.engine,
+                )
+                triples = [
+                    (r["peptide_id"], r["dbsequence_id"], r["pep_start"])
+                    for r in batch
+                ]
+                stmt = select(
+                    table.c.peptide_id, table.c.dbsequence_id, table.c.pep_start
+                ).where(
+                    table.c.upload_id == self.writer.upload_id,
+                    tuple_(
+                        table.c.peptide_id,
+                        table.c.dbsequence_id,
+                        table.c.pep_start,
+                    ).in_(triples),
+                )
+                with self.writer.engine.connect() as conn:
+                    hit = conn.execute(stmt).first()
+                if hit is not None:
+                    peptide_id, dbseq, pep_start = hit
+            except Exception:
+                pass  # fall through to generic message
+
+        prefix = (
+            "Duplicate <PeptideEvidence> entries violate mzIdentML 1.2 §6.49 "
+            "(\"there MUST only be one PeptideEvidence item per "
+            "Peptide-to-DBSequence-position\").\n"
+        )
+        suffix = (
+            "\nThe mzIdentML producer must emit a single <PeptideEvidence> per "
+            "(peptide_ref, dBSequence_ref, start) triple and have every "
+            "<PeptideEvidenceRef> reuse that single @id."
+        )
+
+        if peptide_id is None:
+            raise MzIdParseException(
+                f"{prefix}File:  {self.mzid_path}{suffix}"
+            ) from err
+
+        peptide_ref = reverse.get(peptide_id, f"<internal id {peptide_id}>")
+        raise MzIdParseException(
+            f"{prefix}"
+            f"File:           {self.mzid_path}\n"
+            f"Duplicate key:  peptide_ref={peptide_ref}, "
+            f"dBSequence_ref={dbseq}, start={pep_start}\n\n"
+            "To locate the offending rows, run:\n"
+            f"  grep -n 'peptide_ref=\"{peptide_ref}\".*"
+            f"dBSequence_ref=\"{dbseq}\".*start=\"{pep_start}\"' \\\n"
+            f"    {self.mzid_path}"
+            f"{suffix}"
+        ) from err
 
     def check_target_proteins_have_sequence(self):
         """Check that all target proteins have a sequence."""

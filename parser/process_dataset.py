@@ -18,7 +18,7 @@ from parser.APIWriter import APIWriter
 from parser.compression import extract_mzid_archive
 from parser.DatabaseWriter import DatabaseWriter
 from parser.MzIdParser import MzIdParser, SqliteMzIdParser
-from parser.schema_validate import schema_validate
+from parser.schema_validate import schema_validate_with_messages
 from urllib.parse import urlparse
 
 import orjson
@@ -636,7 +636,10 @@ def convert_dir(
                 writer = APIWriter(pxid=project_identifier)
             else:
                 writer = DatabaseWriter(conn_str, pxid=project_identifier)
-            if schema_validate(file_path):
+            success, schema_version, messages = schema_validate_with_messages(file_path)
+            for msg in messages:
+                print(msg)
+            if success:
                 id_parser = MzIdParser(
                     file_path,
                     peaklist_dir,
@@ -646,14 +649,13 @@ def convert_dir(
                 try:
                     id_parser.parse()
                     # logger.info(id_parser.warnings + "\n")
-                except Exception as e:
+                except Exception:
                     logger.error(f"Error parsing {file}")
-                    logger.exception(e)
-                    raise e
+                    raise
                 finally:
                     _dispose_writer_engine(writer)
             else:
-                print(f"File {file} is schema invalid.")
+                print(f"File {file} is schema invalid (schema version {schema_version}).")
                 sys.exit(1)
 
 def validate_file(
@@ -678,8 +680,11 @@ def validate_file(
     if not file.endswith(".mzid"):
         raise ValueError(f'Invalid file path (must end ".mzid"): {filepath}')
 
-    if schema_validate(filepath):
-        print(f"File {filepath} is schema valid.")
+    success, schema_version, messages = schema_validate_with_messages(filepath)
+    for msg in messages:
+        print(msg)
+    if success:
+        print(f"File {filepath} is schema valid (schema version {schema_version}).")
 
         conn_str = _create_temp_database(temp_dir, file)
         test_database = conn_str.replace("sqlite:///", "")
@@ -718,9 +723,8 @@ def validate_file(
                 )
 
     else:
-        print(f"File {filepath} is schema invalid.")
+        print(f"File {filepath} is schema invalid (schema version {schema_version}).")
         return False
-
     return True
 
 

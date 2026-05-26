@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" id="dup_pe_test" creationDate="2026-01-01T00:00:00" version="1.2.0">
+    <cvList>
+        <cv fullName="psi-ms" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
+    </cvList>
+    <AnalysisSoftwareList>
+        <AnalysisSoftware id="AS1" name="Test Tool" version="1.0">
+            <SoftwareName>
+                <userParam name="Test Tool"/>
+            </SoftwareName>
+        </AnalysisSoftware>
+    </AnalysisSoftwareList>
+    <SequenceCollection>
+        <DBSequence id="DBSEQ1" accession="P00001" searchDatabase_ref="SDB1">
+            <Seq>ACDEFGHIKLMNPQRSTVWY</Seq>
+        </DBSequence>
+        <Peptide id="PEP1">
+            <PeptideSequence>ACDEFGHIK</PeptideSequence>
+        </Peptide>
+        <!-- Two PeptideEvidences with identical (peptide_ref, dBSequence_ref, start)
+             — i.e. the §6.49 violation: distinct @id, same (peptide, dbseq, pos). -->
+        <PeptideEvidence id="PE1" peptide_ref="PEP1" dBSequence_ref="DBSEQ1" start="1" end="9" isDecoy="false"/>
+        <PeptideEvidence id="PE2" peptide_ref="PEP1" dBSequence_ref="DBSEQ1" start="1" end="9" isDecoy="false"/>
+    </SequenceCollection>
+    <AnalysisCollection>
+        <SpectrumIdentification id="SI1" spectrumIdentificationProtocol_ref="SIP1" spectrumIdentificationList_ref="SIL1">
+            <InputSpectra spectraData_ref="SD1"/>
+            <SearchDatabaseRef searchDatabase_ref="SDB1"/>
+        </SpectrumIdentification>
+    </AnalysisCollection>
+    <AnalysisProtocolCollection>
+        <SpectrumIdentificationProtocol id="SIP1" analysisSoftware_ref="AS1">
+            <SearchType>
+                <cvParam accession="MS:1001083" name="ms-ms search" cvRef="PSI-MS"/>
+            </SearchType>
+            <FragmentTolerance>
+                <cvParam accession="MS:1001412" name="search tolerance plus value" value="10" unitAccession="UO:0000169" unitName="parts per million" cvRef="PSI-MS"/>
+                <cvParam accession="MS:1001413" name="search tolerance minus value" value="10" unitAccession="UO:0000169" unitName="parts per million" cvRef="PSI-MS"/>
+            </FragmentTolerance>
+            <ParentTolerance>
+                <cvParam accession="MS:1001412" name="search tolerance plus value" value="10" unitAccession="UO:0000169" unitName="parts per million" cvRef="PSI-MS"/>
+                <cvParam accession="MS:1001413" name="search tolerance minus value" value="10" unitAccession="UO:0000169" unitName="parts per million" cvRef="PSI-MS"/>
+            </ParentTolerance>
+            <Threshold>
+                <cvParam accession="MS:1001494" name="no threshold" cvRef="PSI-MS"/>
+            </Threshold>
+        </SpectrumIdentificationProtocol>
+    </AnalysisProtocolCollection>
+    <DataCollection>
+        <Inputs>
+            <SearchDatabase id="SDB1" name="db" location="db.fasta">
+                <FileFormat>
+                    <cvParam accession="MS:1001348" name="FASTA format" cvRef="PSI-MS"/>
+                </FileFormat>
+                <DatabaseName>
+                    <userParam name="db"/>
+                </DatabaseName>
+            </SearchDatabase>
+            <SpectraData id="SD1" name="test.mzML" location="test.mzML">
+                <FileFormat>
+                    <cvParam accession="MS:1000584" name="mzML format" cvRef="PSI-MS"/>
+                </FileFormat>
+                <SpectrumIDFormat>
+                    <cvParam accession="MS:1001530" name="mzML unique identifier" cvRef="PSI-MS"/>
+                </SpectrumIDFormat>
+            </SpectraData>
+        </Inputs>
+        <AnalysisData>
+            <SpectrumIdentificationList id="SIL1" numSequencesSearched="1">
+                <SpectrumIdentificationResult id="SIR1" spectrumID="scan=1" spectraData_ref="SD1">
+                    <SpectrumIdentificationItem id="SII1" chargeState="2" experimentalMassToCharge="500.0" peptide_ref="PEP1" rank="1" passThreshold="true">
+                        <PeptideEvidenceRef peptideEvidence_ref="PE1"/>
+                        <cvParam accession="MS:1001331" name="X!Tandem:hyperscore" value="20.0" cvRef="PSI-MS"/>
+                    </SpectrumIdentificationItem>
+                </SpectrumIdentificationResult>
+            </SpectrumIdentificationList>
+        </AnalysisData>
+    </DataCollection>
+</MzIdentML>

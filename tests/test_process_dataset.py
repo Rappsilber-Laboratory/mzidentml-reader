@@ -569,7 +569,7 @@ class TestNetworkFunctions:
             shutil.copy(source_file, test_mzid)
 
             with mock.patch(
-                "parser.process_dataset.schema_validate"
+                "parser.process_dataset.schema_validate_with_messages"
             ) as mock_validate:
                 with mock.patch(
                     "parser.process_dataset.MzIdParser"
@@ -577,7 +577,7 @@ class TestNetworkFunctions:
                     with mock.patch(
                         "parser.process_dataset.DatabaseWriter"
                     ) as mock_db_writer:
-                        mock_validate.return_value = True
+                        mock_validate.return_value = (True, "1.2.0", [])
                         mock_parser_instance = mock.Mock()
                         mock_parser.return_value = mock_parser_instance
                         mock_db_writer.return_value = mock.Mock()
