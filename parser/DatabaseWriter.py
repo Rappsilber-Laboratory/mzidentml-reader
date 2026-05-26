@@ -56,8 +56,9 @@ class DatabaseWriter(Writer):
                     r[k] = None
         table = Table(table, self.meta, autoload_with=self.engine)
         with self.engine.connect() as conn:
-            statement = table.insert().values(data)
-            conn.execute(statement)
+            page_size = max(1, 32766 // len(keys))
+            for i in range(0, len(data), page_size):
+                conn.execute(table.insert().values(data[i : i + page_size]))
             conn.commit()
             conn.close()
 
