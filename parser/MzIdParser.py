@@ -10,6 +10,7 @@ import os
 import re
 import struct
 import traceback
+from urllib.parse import unquote
 from parser.APIWriter import APIWriter
 from parser.compression import extract_gz, extract_zip_safe
 from parser.peaklistReader.PeakListWrapper import PeakListWrapper
@@ -25,13 +26,43 @@ from pyteomics.auxiliary import cvquery
 
 # noinspection PyProtectedMember
 from pyteomics.xml import _local_name
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+_PSI_MS_OBO_URL = "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"
+_PSI_MS_OBO_LOCAL = os.path.join(os.path.dirname(__file__), "..", "obo", "psi-ms.obo")
 
 
 class MzIdParseException(Exception):
     """Exception raised when parsing mzIdentML files."""
 
     pass
+
+
+def _cvparam_accession(obj: Any, *, context: str) -> str:
+    """Extract the cvParam accession from a pyteomics-parsed wrapper element.
+
+    pyteomics represents a cvParam with no value= attribute as a cvstr
+    carrying .accession, but a cvParam with a value= attribute as a
+    {cvstr: unitstr} one-element dict where the key carries .accession.
+    Both forms appear in real-world mzIdentML; this helper accepts either.
+
+    Args:
+        obj: The element pyteomics returned (e.g. sp_datum["FileFormat"]).
+        context: Human-readable description of where this is being read,
+            used in the error message so users can locate the offending
+            element in their file.
+    """
+    if hasattr(obj, "accession"):
+        return obj.accession
+    if isinstance(obj, dict) and len(obj) == 1:
+        key = next(iter(obj.keys()))
+        if hasattr(key, "accession"):
+            return key.accession
+    raise MzIdParseException(
+        f"Could not read cvParam accession for {context}. "
+        f"Expected a single cvParam with an 'accession' attribute; got "
+        f"{type(obj).__name__}: {obj!r}."
+    )
 
 
 # noinspection PyProtectedMember
@@ -74,11 +105,16 @@ class MzIdParser:
         self.writer = writer
         self.logger = logger
 
-        self.ms_obo = obonet.read_obo(
-            "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"
-        )
+        try:
+            self.ms_obo = obonet.read_obo(_PSI_MS_OBO_URL)
+        except Exception:
+            self.logger.warning(
+                "Could not fetch psi-ms.obo from network; using bundled fallback."
+            )
+            self.ms_obo = obonet.read_obo(_PSI_MS_OBO_LOCAL)
 
         self.contains_crosslinks = False
+        self.is_de_novo = False
 
         self.warnings = set()
 
@@ -192,12 +228,26 @@ class MzIdParser:
 
             self.check_spectra_data_validity(sp_datum)
 
-            peak_list_file_name = ntpath.basename(sp_datum["location"])
-            file_format = sp_datum["FileFormat"].accession
-            spectrum_id_format = sp_datum["SpectrumIDFormat"].accession
+            # SpectraData/@location is typed xsd:anyURI, so percent-decode
+            # before extracting the basename. ntpath handles both forward
+            # and backslash separators so we still strip the directory off
+            # of producer-emitted Windows paths.
+            raw_location = sp_datum["location"]
+            decoded_location = unquote(raw_location)
+            peak_list_file_name = ntpath.basename(decoded_location)
+            file_format = _cvparam_accession(
+                sp_datum["FileFormat"],
+                context=f"SpectraData[id={spectra_data_id}].FileFormat",
+            )
+            spectrum_id_format = _cvparam_accession(
+                sp_datum["SpectrumIDFormat"],
+                context=(
+                    f"SpectraData[id={spectra_data_id}].SpectrumIDFormat"
+                ),
+            )
 
             if self.peak_list_dir:
-                peak_list_file_path = self.peak_list_dir + peak_list_file_name
+                peak_list_file_path = os.path.join(self.peak_list_dir, peak_list_file_name)
                 # noinspection PyBroadException
                 try:
                     peak_list_reader = PeakListWrapper(
@@ -231,8 +281,17 @@ class MzIdParser:
                             )
                         except Exception:
                             raise MzIdParseException(
-                                "Missing peak list file: %s"
-                                % peak_list_file_path
+                                f"Could not load peak list "
+                                f"'{peak_list_file_name}' for "
+                                f"SpectraData[id={spectra_data_id}]. "
+                                f"Looked in {self.peak_list_dir} (also "
+                                f"tried .gz and any .zip archives there). "
+                                f"The mzid declares location="
+                                f"{raw_location!r}; we use the basename "
+                                f"{peak_list_file_name!r} (after URI "
+                                f"percent-decoding) and expect the peak "
+                                f"list file to be present alongside the "
+                                f"mzid."
                             )
 
                 peak_list_readers[spectra_data_id] = peak_list_reader
@@ -288,6 +347,17 @@ class MzIdParser:
                 frag_tol = sid_protocol["FragmentTolerance"]
                 frag_tol_plus = frag_tol["search tolerance plus value"]
                 frag_tol_value = re.sub("[^0-9,.]", "", str(frag_tol_plus))
+                if not frag_tol_value:
+                    # FragmentTolerance is present but its cvParam has no
+                    # value= attribute. The producer asserted a tolerance
+                    # without supplying a number; that's malformed input,
+                    # not a missing-tolerance case, so fail loudly rather
+                    # than silently substituting a default.
+                    raise MzIdParseException(
+                        "FragmentTolerance cvParam 'search tolerance plus "
+                        "value' (MS:1001412) has no value attribute. "
+                        "Include a numeric value."
+                    )
                 if frag_tol_plus.unit_info.lower() == "parts per million":
                     frag_tol_unit = "ppm"
                 elif frag_tol_plus.unit_info.lower() == "dalton":
@@ -329,11 +399,14 @@ class MzIdParser:
             add_sp = sid_protocol.get("AdditionalSearchParams", {})
             # Threshold
             threshold = sid_protocol.get("Threshold", {})
+            search_type = sid_protocol["SearchType"]
+            if cvquery(search_type, "MS:1001010") is not None:
+                self.is_de_novo = True
             data = {
                 "id": sip_int_id,
                 "upload_id": self.writer.upload_id,
                 "sip_ref": sid_protocol["id"],
-                "search_type": sid_protocol["SearchType"],
+                "search_type": search_type,
                 "frag_tol": frag_tol_value,
                 "frag_tol_unit": frag_tol_unit,
                 "additional_search_params": cvquery(add_sp),
@@ -399,6 +472,25 @@ class MzIdParser:
                         enzyme_name = self.get_cv_params(
                             enzyme_name_el, "MS:1001045"
                         )
+                        if len(enzyme_name) > 1:
+                            # Some producers add the "unspecific cleavage" /
+                            # "no cleavage" flag cvParams alongside the real
+                            # enzyme name. Both are is_a children of
+                            # MS:1001045 in PSI-MS, but only real enzymes
+                            # have a has_regexp edge in the OBO. Use that
+                            # to disambiguate.
+                            with_regexp = {
+                                k: v
+                                for k, v in enzyme_name.items()
+                                if any(
+                                    key == "has_regexp"
+                                    for _, _, key in self.ms_obo.out_edges(
+                                        k.accession, keys=True
+                                    )
+                                )
+                            }
+                            if len(with_regexp) == 1:
+                                enzyme_name = with_regexp
                         if len(enzyme_name) > 1:
                             raise MzIdParseException(
                                 f"Error when parsing EnzymeName from Enzyme:\n{json.dumps(enzyme)}"
@@ -553,8 +645,14 @@ class MzIdParser:
                 self.writer.write_data("dbsequence", db_sequences)
                 db_sequences = []
 
-        # write the remaining db sequences
-        if db_sequences:
+        if not self.dbseqs:
+            if not self.is_de_novo:
+                raise MzIdParseException(
+                    "No DBSequence elements found. A non-de-novo search must reference a protein "
+                    "database. If this is a de novo search, add the cvParam MS:1001010 "
+                    "('de novo search') to the SearchType in your SpectrumIdentificationProtocol."
+                )
+        elif db_sequences:
             self.writer.write_data("dbsequence", db_sequences)
 
         self.logger.info(
@@ -738,14 +836,25 @@ class MzIdParser:
                 try:
                     self.writer.write_data("peptideevidence", pep_evidences)
                     pep_evidences = []
-                except Exception as e:
-                    raise e
+                except IntegrityError as e:
+                    self._raise_for_pe_unique_violation(e, pep_evidences)
+                    raise
 
         # write the remaining data
-        try:
-            self.writer.write_data("peptideevidence", pep_evidences)
-        except Exception as e:
-            raise e
+        if not self.mzid_reader._offset_index["PeptideEvidence"]:
+            if not self.is_de_novo:
+                raise MzIdParseException(
+                    "No PeptideEvidence elements found. A non-de-novo search must link peptides "
+                    "to proteins via PeptideEvidence. If this is a de novo search, add the cvParam "
+                    "MS:1001010 ('de novo search') to the SearchType in your "
+                    "SpectrumIdentificationProtocol."
+                )
+        elif pep_evidences:
+            try:
+                self.writer.write_data("peptideevidence", pep_evidences)
+            except IntegrityError as e:
+                self._raise_for_pe_unique_violation(e, pep_evidences)
+                raise
 
         self.mzid_reader.reset()
 
@@ -754,6 +863,122 @@ class MzIdParser:
                 round(time() - start_time, 2)
             )
         )
+
+    def _raise_for_pe_unique_violation(
+        self, err: IntegrityError, batch: list[dict[str, Any]]
+    ) -> None:
+        """If `err` is a mzIdentML §6.49 PE uniqueness violation, raise a clear exception.
+
+        The DB enforces one row per (upload_id, peptide_id, dbsequence_id,
+        pep_start) — the §6.49 invariant. To identify the offending triple we
+        try, in order:
+          1. PG's diag.message_detail (zero extra DB work — Postgres path).
+          2. The failing batch itself, for an in-batch duplicate.
+          3. A single SELECT against the table to find which row in the batch
+             was already committed by a previous batch (cross-batch case for
+             backends without rich error diagnostics, e.g. SQLite).
+
+        No-op if `err` isn't the PE uniqueness violation.
+        """
+        orig = getattr(err, "orig", None)
+        diag = getattr(orig, "diag", None)
+        is_pg_pe = (
+            diag is not None
+            and getattr(diag, "constraint_name", None) == "peptideevidence_pkey"
+        )
+        orig_text = str(orig) if orig is not None else ""
+        is_other_pe = (
+            "UNIQUE constraint failed" in orig_text
+            and "peptideevidence" in orig_text
+        )
+        if not (is_pg_pe or is_other_pe):
+            return
+
+        reverse = {v: k for k, v in self.pep_ref_to_pep_id_lookup.items()}
+        peptide_id: Any = None
+        dbseq: Any = None
+        pep_start: Any = None
+
+        # 1. Postgres diag.
+        if is_pg_pe:
+            match = re.search(
+                r"\(upload_id, peptide_id, dbsequence_id, pep_start\)="
+                r"\(([^,]+), ([^,]+), (.+), ([^)]+)\) already exists",
+                getattr(diag, "message_detail", "") or "",
+            )
+            if match is not None:
+                _, pid, dbseq, pep_start = match.groups()
+                peptide_id = int(pid)
+
+        # 2. In-batch scan.
+        if peptide_id is None and batch:
+            seen: dict[tuple[Any, Any, Any], int] = {}
+            for row in batch:
+                key = (row["peptide_id"], row["dbsequence_id"], row["pep_start"])
+                if key in seen:
+                    peptide_id, dbseq, pep_start = key
+                    break
+                seen[key] = 1
+
+        # 3. Cross-batch SELECT.
+        if peptide_id is None and batch and hasattr(self.writer, "engine"):
+            from sqlalchemy import MetaData, Table, select, tuple_
+
+            try:
+                table = Table(
+                    "peptideevidence",
+                    MetaData(),
+                    autoload_with=self.writer.engine,
+                )
+                triples = [
+                    (r["peptide_id"], r["dbsequence_id"], r["pep_start"])
+                    for r in batch
+                ]
+                stmt = select(
+                    table.c.peptide_id, table.c.dbsequence_id, table.c.pep_start
+                ).where(
+                    table.c.upload_id == self.writer.upload_id,
+                    tuple_(
+                        table.c.peptide_id,
+                        table.c.dbsequence_id,
+                        table.c.pep_start,
+                    ).in_(triples),
+                )
+                with self.writer.engine.connect() as conn:
+                    hit = conn.execute(stmt).first()
+                if hit is not None:
+                    peptide_id, dbseq, pep_start = hit
+            except Exception:
+                pass  # fall through to generic message
+
+        prefix = (
+            "Duplicate <PeptideEvidence> entries violate mzIdentML 1.2 §6.49 "
+            "(\"there MUST only be one PeptideEvidence item per "
+            "Peptide-to-DBSequence-position\").\n"
+        )
+        suffix = (
+            "\nThe mzIdentML producer must emit a single <PeptideEvidence> per "
+            "(peptide_ref, dBSequence_ref, start) triple and have every "
+            "<PeptideEvidenceRef> reuse that single @id."
+        )
+
+        if peptide_id is None:
+            raise MzIdParseException(
+                f"{prefix}File:  {self.mzid_path}{suffix}"
+            ) from err
+
+        peptide_ref = reverse.get(peptide_id, f"<internal id {peptide_id}>")
+        raise MzIdParseException(
+            f"{prefix}"
+            f"File:           {self.mzid_path}\n"
+            f"Duplicate key:  peptide_ref={peptide_ref}, "
+            f"dBSequence_ref={dbseq}, start={pep_start}\n\n"
+            "To locate the offending rows, run:\n"
+            f"  grep -n 'peptide_ref=\"{peptide_ref}\".*"
+            f"dBSequence_ref=\"{dbseq}\".*start=\"{pep_start}\"' \\\n"
+            f"    {self.mzid_path}"
+            f"{suffix}"
+        ) from err
 
     def check_target_proteins_have_sequence(self):
         """Check that all target proteins have a sequence."""

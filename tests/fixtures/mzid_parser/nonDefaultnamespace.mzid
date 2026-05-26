@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns0:MzIdentML xmlns:ns0="http://psidev.info/psi/pi/mzIdentML/1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.3 https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML1.3.0.xsd" id="b73640f9e52d04b5eabd6bf8917852b054698873ef4935aca83a87e7e71c9af3" name="The root node of the entire file" creationDate="2026-04-25T09:33:00.038746" version="1.3.0">
+    <ns0:cvList>
+        <ns0:cv fullName="psi-ms" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
+        <ns0:cv fullName="psi-mi" uri="https://github.com/HUPO-PSI/psi-mi-CV/blob/master/psi-mi.obo" id="PSI-MI"/>
+        <ns0:cv fullName="psi-mod" uri="https://github.com/HUPO-PSI/psi-mod-CV/blob/master/PSI-MOD.obo" id="PSI-MOD"/>
+        <ns0:cv fullName="xlmod" uri="https://raw.githubusercontent.com/HUPO-PSI/xlmod-CV/main/XLMOD.obo" id="XLMOD"/>
+        <ns0:cv fullName="unimod" uri="https://www.unimod.org/obo/unimod.obo" id="UNIMOD"/>
+        <ns0:cv fullName="unit-ontology" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/refs/heads/master/uo.obo" id="UNIT-ONTOLOGY"/>
+    </ns0:cvList>
+    <ns0:AnalysisSoftwareList>
+        <ns0:AnalysisSoftware id="752c1c48fbdab725ce8cae79d28054ddc65084f38981f75e4bd10b80c31ccc12" name="Default Software" version="2.3.9" uri="">
+            <ns0:ContactRole contact_ref="f710c6399c5b2bcce64ec8011e13a54792a842fcd5df7e2b3d630c353fb85917">
+                <ns0:Role>
+                    <ns0:cvParam name="researcher" cvRef="PSI-MS" accession="MS:1001271"/>
+                </ns0:Role>
+            </ns0:ContactRole>
+            <ns0:SoftwareName>
+                <ns0:userParam name="Default Software"/>
+            </ns0:SoftwareName>
+            <ns0:Customizations/>
+        </ns0:AnalysisSoftware>
+    </ns0:AnalysisSoftwareList>
+    <ns0:AuditCollection>
+        <ns0:Organization id="b7973c040ad35c5369c0af567fa2040f122b7b56cc1e372a40471a8072b00483" name="Default Organization">
+            <ns0:cvParam name="contact name" value="Default Organization" cvRef="PSI-MS" accession="MS:1000586"/>
+        </ns0:Organization>
+        <ns0:Person id="f710c6399c5b2bcce64ec8011e13a54792a842fcd5df7e2b3d630c353fb85917" name="Default Person" lastName="Person" firstName="Default" midInitials="">
+            <ns0:cvParam name="contact name" value="Default Person" cvRef="PSI-MS" accession="MS:1000586"/>
+            <ns0:Affiliation organization_ref="b7973c040ad35c5369c0af567fa2040f122b7b56cc1e372a40471a8072b00483"/>
+        </ns0:Person>
+    </ns0:AuditCollection>
+    <ns0:SequenceCollection>
+        <ns0:Peptide id="84ebf1de83c0b33d7c50e490e2df8545a1bd10f8a741e65230738d09bbb551f4" name="Regular Peptide">
+            <ns0:PeptideSequence>ACDEFGHIK</ns0:PeptideSequence>
+        </ns0:Peptide>
+    </ns0:SequenceCollection>
+    <ns0:AnalysisCollection>
+        <ns0:SpectrumIdentification id="SPECTRUMIDENTIFICATION" name="Search Parameter" activityDate="2026-05-01T19:53:00.038878" spectrumIdentificationProtocol_ref="SPECTRUMIDENTIFICATIONPROTOCOL" spectrumIdentificationList_ref="SPECTRUMIDENTIFICATIONLIST">
+            <ns0:InputSpectra spectraData_ref="5a979581759538c47271731619066a57b34a54749e47e52a07f052702c8665f4"/>
+            <ns0:SearchDatabaseRef searchDatabase_ref=""/>
+        </ns0:SpectrumIdentification>
+        <ns0:ProteinDetection id="PROTEINDETECTION" name="Protein Detection" activityDate="2026-05-01T19:53:00.038886" proteinDetectionList_ref="PROTEINDETECTIONLISTTYPE" proteinDetectionProtocol_ref="PROTEINDETECTIONPROTOCOL">
+            <ns0:InputSpectrumIdentifications spectrumIdentificationList_ref="SPECTRUMIDENTIFICATIONLIST"/>
+        </ns0:ProteinDetection>
+    </ns0:AnalysisCollection>
+    <ns0:AnalysisProtocolCollection>
+        <ns0:SpectrumIdentificationProtocol id="SPECTRUMIDENTIFICATIONPROTOCOL" name="Search Parameter" analysisSoftware_ref="752c1c48fbdab725ce8cae79d28054ddc65084f38981f75e4bd10b80c31ccc12">
+            <ns0:SearchType>
+                <ns0:cvParam name="de novo search" cvRef="PSI-MS" accession="MS:1001010"/>
+            </ns0:SearchType>
+            <ns0:MassTable id="MASSTABLE" name="Amino Acid Mass Table" msLevel="1 2">
+                <ns0:Residue code="A" mass="71.03711030000001"/>
+                <ns0:Residue code="B" mass="0.0"/>
+                <ns0:Residue code="C" mass="103.00918030000001"/>
+                <ns0:Residue code="D" mass="115.0269385"/>
+                <ns0:Residue code="E" mass="129.0425877"/>
+                <ns0:Residue code="F" mass="147.0684087"/>
+                <ns0:Residue code="G" mass="57.021461099999996"/>
+                <ns0:Residue code="H" mass="137.05890589999998"/>
+                <ns0:Residue code="I" mass="113.0840579"/>
+                <ns0:Residue code="J" mass="0.0"/>
+                <ns0:Residue code="K" mass="128.09495569999999"/>
+                <ns0:Residue code="L" mass="113.0840579"/>
+                <ns0:Residue code="M" mass="131.0404787"/>
+                <ns0:Residue code="N" mass="114.04292219999999"/>
+                <ns0:Residue code="O" mass="0.0"/>
+                <ns0:Residue code="P" mass="97.05275950000001"/>
+                <ns0:Residue code="Q" mass="128.0585714"/>
+                <ns0:Residue code="R" mass="156.10110209999996"/>
+                <ns0:Residue code="S" mass="87.03202440000001"/>
+                <ns0:Residue code="T" mass="101.04767360000001"/>
+                <ns0:Residue code="U" mass="0.0"/>
+                <ns0:Residue code="V" mass="99.0684087"/>
+                <ns0:Residue code="W" mass="186.0793065"/>
+                <ns0:Residue code="X" mass="0.0"/>
+                <ns0:Residue code="Y" mass="163.0633228"/>
+                <ns0:Residue code="Z" mass="0.0"/>
+            </ns0:MassTable>
+            <ns0:Threshold>
+                <ns0:cvParam name="no threshold" value="" cvRef="PSI-MS" accession="MS:1001494"/>
+            </ns0:Threshold>
+        </ns0:SpectrumIdentificationProtocol>
+        <ns0:ProteinDetectionProtocol id="PROTEINDETECTIONPROTOCOL" name="SearchParameter" analysisSoftware_ref="752c1c48fbdab725ce8cae79d28054ddc65084f38981f75e4bd10b80c31ccc12">
+            <ns0:Threshold>
+                <ns0:cvParam name="no threshold" value="" cvRef="PSI-MS" accession="MS:1001494"/>
+            </ns0:Threshold>
+        </ns0:ProteinDetectionProtocol>
+    </ns0:AnalysisProtocolCollection>
+    <ns0:DataCollection>
+        <ns0:Inputs>
+            <ns0:SearchDatabase id="" name="" location="">
+                <ns0:FileFormat>
+                    <ns0:cvParam name="No Database Info" cvRef="PSI-MS" accession="MS:1001013"/>
+                </ns0:FileFormat>
+                <ns0:DatabaseName>
+                    <ns0:userParam name="No Database Info"/>
+                </ns0:DatabaseName>
+            </ns0:SearchDatabase>
+            <ns0:SpectraData id="5a979581759538c47271731619066a57b34a54749e47e52a07f052702c8665f4" name="test.mzML" location="test.mzML">
+                <ns0:ExternalFormatDocumentation/>
+                <ns0:FileFormat>
+                    <ns0:cvParam name="mzML format" value="mzML format" cvRef="PSI-MS" accession="MS:1000584"/>
+                </ns0:FileFormat>
+                <ns0:SpectrumIDFormat>
+                    <ns0:cvParam name="Agilent MassHunter nativeID format" cvRef="PSI-MS" accession="MS:1001508"/>
+                </ns0:SpectrumIDFormat>
+            </ns0:SpectraData>
+        </ns0:Inputs>
+        <ns0:AnalysisData>
+            <ns0:SpectrumIdentificationList id="SPECTRUMIDENTIFICATIONLIST" name="Search Result" numSequencesSearched="0">
+                <ns0:SpectrumIdentificationResult id="e5d9bc871da2820ca17416dd6ec30cb6291c582a539dc471ce646e2cb0e37da4" name="test.mzML 123" spectrumID="test.mzML_123" spectraData_ref="5a979581759538c47271731619066a57b34a54749e47e52a07f052702c8665f4">
+                    <ns0:SpectrumIdentificationItem id="fe9a6584af2ac7d609b484bb2084733c3372ad3ccf2bf1529a6cbc7712ce36cb" name="Search Result Item" chargeState="999" experimentalMassToCharge="2.0082674576119905" peptide_ref="84ebf1de83c0b33d7c50e490e2df8545a1bd10f8a741e65230738d09bbb551f4" rank="1" passThreshold="true" massTable_ref="MASSTABLE"/>
+                </ns0:SpectrumIdentificationResult>
+            </ns0:SpectrumIdentificationList>
+            <ns0:ProteinDetectionList id="PROTEINDETECTIONLISTTYPE" name="Protein Detection List">
+                <ns0:cvParam name="count of identified proteins" value="0" cvRef="PSI-MS" accession="MS:1002404"/>
+            </ns0:ProteinDetectionList>
+        </ns0:AnalysisData>
+    </ns0:DataCollection>
+</ns0:MzIdentML>

@@ -47,6 +47,7 @@ class FullCsvParser(AbstractCsvParser):
         self.logger.info("main loop FullCsvParser - start")
 
         peptide_evidences = []
+        seen_evidences = set()
         spectrum_identifications = []
         spectra = []
         peptides = []
@@ -362,7 +363,7 @@ class FullCsvParser(AbstractCsvParser):
 
                     spectrum = {
                         "id": scan_id,
-                        "spectra_data_id": peak_list_file_name,
+                        "spectra_data_id": self.spectra_data_id_lookup[peak_list_file_name],
                         "upload_id": self.writer.upload_id,
                         "peak_list_file_name": peak_list_file_name,
                         "precursor_mz": spectrum.precursor["mz"],
@@ -437,15 +438,17 @@ class FullCsvParser(AbstractCsvParser):
             # PEPTIDE EVIDENCES
             # peptide evidence - 1
             for i in range(len(protein_list1)):
-                pep_evidence1 = {
-                    "upload_id": self.writer.upload_id,
-                    "peptide_id": pep1_id,
-                    "dbsequence_id": protein_list1[i],
-                    "pep_start": pep_pos_list1[i],
-                    "is_decoy": is_decoy_list1[i],
-                }
-
-                peptide_evidences.append(pep_evidence1)
+                evidence_key1 = (pep1_id, protein_list1[i], pep_pos_list1[i])
+                if evidence_key1 not in seen_evidences:
+                    seen_evidences.add(evidence_key1)
+                    pep_evidence1 = {
+                        "upload_id": self.writer.upload_id,
+                        "peptide_id": pep1_id,
+                        "dbsequence_id": protein_list1[i],
+                        "pep_start": pep_pos_list1[i],
+                        "is_decoy": is_decoy_list1[i],
+                    }
+                    peptide_evidences.append(pep_evidence1)
 
             if crosslinked_id_item and pep1_id != pep2_id:
                 # peptide evidence - 2
@@ -454,15 +457,17 @@ class FullCsvParser(AbstractCsvParser):
                     raise Exception("Fatal! peptide id error!")
 
                 for i in range(len(protein_list2)):
-                    pep_evidence2 = {
-                        "upload_id": self.writer.upload_id,
-                        "peptide_id": pep2_id,
-                        "dbsequence_id": protein_list2[i],
-                        "pep_start": pep_pos_list2[i],
-                        "is_decoy": is_decoy_list2[i],
-                    }
-
-                    peptide_evidences.append(pep_evidence2)
+                    evidence_key2 = (pep2_id, protein_list2[i], pep_pos_list2[i])
+                    if evidence_key2 not in seen_evidences:
+                        seen_evidences.add(evidence_key2)
+                        pep_evidence2 = {
+                            "upload_id": self.writer.upload_id,
+                            "peptide_id": pep2_id,
+                            "dbsequence_id": protein_list2[i],
+                            "pep_start": pep_pos_list2[i],
+                            "is_decoy": is_decoy_list2[i],
+                        }
+                        peptide_evidences.append(pep_evidence2)
 
             #
             # SPECTRUM IDENTIFICATIONS
@@ -520,6 +525,8 @@ class FullCsvParser(AbstractCsvParser):
         db_sequences = []
         for prot_id in proteins:
             try:
+                if not self.fasta:
+                    raise KeyError(prot_id)
                 db_seq = {
                     "id": prot_id,
                     "upload_id": self.writer.upload_id,

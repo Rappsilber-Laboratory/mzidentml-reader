@@ -212,8 +212,8 @@ class LinksOnlyCsvParser(AbstractCsvParser):
                 #     accession = m.groups()[0]
                 pep_evidence1 = {
                     "upload_id": self.writer.upload_id,
-                    "peptide_ref": pep1_id,
-                    "dbsequence_ref": protein_list1[i],
+                    "peptide_id": pep1_id,
+                    "dbsequence_id": protein_list1[i],
                     "pep_start": int(float(abs_pos_list1[i])),
                     "is_decoy": is_decoy_list1[i],
                 }
@@ -235,8 +235,8 @@ class LinksOnlyCsvParser(AbstractCsvParser):
 
                     pep_evidence2 = {
                         "upload_id": self.writer.upload_id,
-                        "peptide_ref": pep2_id,
-                        "dbsequence_ref": protein_list2[i],
+                        "peptide_id": pep2_id,
+                        "dbsequence_id": protein_list2[i],
                         "pep_start": int(float(abs_pos_list2[i])),
                         "is_decoy": is_decoy_list2[i],
                     }

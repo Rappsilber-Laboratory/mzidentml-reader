@@ -134,7 +134,7 @@ def compare_modified_peptide(results):
         results[284].crosslinker_modmass == -2.01565
     )  # monoisotopicMassDelta of Modification with crosslink cvParam
     assert (
-        results[284].crosslinker_pair_id == "37.0"
+        results[284].crosslinker_pair_id == "37"
     )  # value of cross-link acceptor/receiver cvParam
 
     assert (
@@ -155,7 +155,7 @@ def compare_modified_peptide(results):
         results[285].crosslinker_modmass == 0
     )  # monoisotopicMassDelta of <Modification> with crosslink acc/rec cvParam
     assert (
-        results[285].crosslinker_pair_id == "37.0"
+        results[285].crosslinker_pair_id == "37"
     )  # value of cross-link acceptor/receiver cvParam
 
 

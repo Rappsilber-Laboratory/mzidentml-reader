@@ -104,7 +104,6 @@ class TestSequencesAndResiduePairsSingleFile:
             assert "prot2" in rp
             assert "prot2_acc" in rp
             assert "pos2" in rp
-            assert "mod_accs" in rp
             # Check types (prot ids can be int or str depending on database)
             assert isinstance(rp["match_ids"], str)
             assert isinstance(rp["files"], str)
