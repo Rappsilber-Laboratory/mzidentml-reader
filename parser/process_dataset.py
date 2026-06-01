@@ -18,12 +18,12 @@ from parser.APIWriter import APIWriter
 from parser.compression import extract_mzid_archive
 from parser.DatabaseWriter import DatabaseWriter
 from parser.MzIdParser import MzIdParser, SqliteMzIdParser
-from parser.schema_validate import schema_validate
+from parser.schema_validate import schema_validate_with_messages
 from urllib.parse import urlparse
 
 import orjson
 import requests
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 
 # Import custom modules
 from config.config_parser import get_conn_str
@@ -63,9 +63,24 @@ def _create_temp_database(temp_dir: str, filename: str) -> str:
     filewithoutext = os.path.splitext(filename)[0]
     temp_database = os.path.join(str(temp_dir), f"{filewithoutext}.db")
 
-    # Delete the temp database if it exists
-    if os.path.exists(temp_database):
-        os.remove(temp_database)
+    # Delete the temp database (and any SQLite sidecar files) if they exist.
+    # Sidecars can be left behind by a previous crashed run; if SQLite
+    # recovers them against a stale schema the failure is obscure.
+    for path in (
+        temp_database,
+        f"{temp_database}-journal",
+        f"{temp_database}-wal",
+        f"{temp_database}-shm",
+    ):
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError as e:
+                raise RuntimeError(
+                    f"Could not remove pre-existing temp DB file {path}. "
+                    "Close any program holding it (SQLite browser, "
+                    "previous run) and retry."
+                ) from e
 
     return f"sqlite:///{temp_database}"
 
@@ -339,9 +354,8 @@ def sequences_and_residue_pairs(filepath: str, temp_dir: str) -> dict:
         sql = text(
             """SELECT group_concat(si.id) as match_ids, group_concat(u.identification_file_name) as files,
             pe1.dbsequence_id as prot1, dbs1.accession as prot1_acc, (pe1.pep_start + mp1.link_site1 - 1) as pos1,
-            pe2.dbsequence_id as prot2, dbs2.accession as prot2_acc, (pe2.pep_start + mp2.link_site1 - 1) as pos2,
-			coalesce (mp1.mod_accessions, mp2.mod_accessions) as mod_accs
-            FROM match si INNER JOIN
+            pe2.dbsequence_id as prot2, dbs2.accession as prot2_acc, (pe2.pep_start + mp2.link_site1 - 1) as pos2
+			FROM match si INNER JOIN
             modifiedpeptide mp1 ON si.upload_id = mp1.upload_id AND si.pep1_id = mp1.id INNER JOIN
             peptideevidence pe1 ON mp1.upload_id = pe1.upload_id AND  mp1.id = pe1.peptide_id INNER JOIN
             dbsequence dbs1 ON pe1.upload_id = dbs1.upload_id AND pe1.dbsequence_id = dbs1.id INNER JOIN
@@ -362,9 +376,15 @@ def sequences_and_residue_pairs(filepath: str, temp_dir: str) -> dict:
         logging.info(f"residue pair SQL execution time: {elapsed_time}")
         rp_rows = rs.mappings().all()
         rp_rows = [dict(row) for row in rp_rows]
-    # Extract database path from connection string and remove it
+    # Extract database path from connection string and remove it.
+    # Dispose the engine first so no pooled connections are still open —
+    # on Windows that would block os.remove (WinError 32).
     temp_database = conn_str.replace("sqlite:///", "")
-    os.remove(temp_database)
+    engine.dispose()
+    try:
+        os.remove(temp_database)
+    except OSError as e:
+        logger.warning(f"Could not remove temp DB {temp_database}: {e}")
     return {"sequences": seq_rows, "residue_pairs": rp_rows}
 
 
@@ -616,7 +636,10 @@ def convert_dir(
                 writer = APIWriter(pxid=project_identifier)
             else:
                 writer = DatabaseWriter(conn_str, pxid=project_identifier)
-            if schema_validate(file_path):
+            success, schema_version, messages = schema_validate_with_messages(file_path)
+            for msg in messages:
+                print(msg)
+            if success:
                 id_parser = MzIdParser(
                     file_path,
                     peaklist_dir,
@@ -626,14 +649,13 @@ def convert_dir(
                 try:
                     id_parser.parse()
                     # logger.info(id_parser.warnings + "\n")
-                except Exception as e:
+                except Exception:
                     logger.error(f"Error parsing {file}")
-                    logger.exception(e)
-                    raise e
+                    raise
                 finally:
                     _dispose_writer_engine(writer)
             else:
-                print(f"File {file} is schema invalid.")
+                print(f"File {file} is schema invalid (schema version {schema_version}).")
                 sys.exit(1)
 
 def validate_file(
@@ -658,18 +680,25 @@ def validate_file(
     if not file.endswith(".mzid"):
         raise ValueError(f'Invalid file path (must end ".mzid"): {filepath}')
 
-    if schema_validate(filepath):
-        print(f"File {filepath} is schema valid.")
+    success, schema_version, messages = schema_validate_with_messages(filepath)
+    for msg in messages:
+        print(msg)
+    if success:
+        print(f"File {filepath} is schema valid (schema version {schema_version}).")
 
         conn_str = _create_temp_database(temp_dir, file)
-        engine = create_engine(conn_str)
         test_database = conn_str.replace("sqlite:///", "")
 
-        # switch on Foreign Key Enforcement
-        with engine.connect() as conn:
-            conn.execute(text("PRAGMA foreign_keys = ON;"))
-
         writer = DatabaseWriter(conn_str, upload_id=1, pxid="Validation")
+
+        # SQLite FK enforcement is per-connection: register a pool listener
+        # so every connection the parser checks out has the pragma set.
+        @event.listens_for(writer.engine, "connect")
+        def _enable_sqlite_fk(dbapi_conn, _record):
+            cursor = dbapi_conn.cursor()
+            cursor.execute("PRAGMA foreign_keys = ON")
+            cursor.close()
+
         id_parser = SqliteMzIdParser(
             os.path.join(local_dir, file),
             peaklist_dir,
@@ -678,18 +707,24 @@ def validate_file(
         )
         try:
             id_parser.parse()
-            os.remove(test_database)
         except Exception as e:
             print(f"Error parsing {filepath}")
             print(e)
             return False
         finally:
+            # Dispose the engine before deleting the file — on Windows
+            # an open pooled connection blocks os.remove (WinError 32).
             _dispose_writer_engine(writer)
+            try:
+                os.remove(test_database)
+            except OSError as e:
+                logger.warning(
+                    f"Could not remove temp DB {test_database}: {e}"
+                )
 
     else:
-        print(f"File {filepath} is schema invalid.")
+        print(f"File {filepath} is schema invalid (schema version {schema_version}).")
         return False
-
     return True
 
 

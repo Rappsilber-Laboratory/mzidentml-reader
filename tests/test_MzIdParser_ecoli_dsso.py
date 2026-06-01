@@ -88,14 +88,14 @@ def compare_modified_peptide(results):
     assert (
         results[0].base_sequence == "KFDAKMVGK"
     )  # value of <PeptideSequence>
-    assert results[0].mod_accessions == [{"MS:1002510": 1.0}]
+    assert results[0].mod_accessions == [{"MS:1002510": "1"}]
     assert results[0].mod_positions == [5]
     # location of <Modification> with cross-link acceptor/receiver cvParam
     assert results[0].link_site1 == 5
     # monoisotopicMassDelta of <Modification> with cross-link acceptor/receiver cvParam
     assert results[0].crosslinker_modmass == 0
     # value of cross-link acceptor/receiver cvParam
-    assert results[0].crosslinker_pair_id == "1.0"
+    assert results[0].crosslinker_pair_id == "1"
 
     # id from <Peptide> id
     assert results[1].id == 1  #  '29_KVLDSKPSVLALNIQR_30_KFDAKMVGK_1_5_p0'
@@ -103,7 +103,7 @@ def compare_modified_peptide(results):
         results[1].base_sequence == "KVLDSKPSVLALNIQR"
     )  # value of <PeptideSequence>
     assert results[1].mod_accessions == [
-        {"MS:1001460": "unknown modification", "MS:1002509": 1.0}
+        {"MS:1001460": "unknown modification", "MS:1002509": "1"}
     ]
     assert results[1].mod_positions == [1]
     # location of <Modification> with cross-link acceptor/receiver cvParam
@@ -113,21 +113,21 @@ def compare_modified_peptide(results):
         158.0037644600003, abs=1e-12
     )
     # value of cross-link acceptor/receiver cvParam
-    assert results[1].crosslinker_pair_id == "1.0"
+    assert results[1].crosslinker_pair_id == "1"
 
     # id from <Peptide> id
     assert (
         results[2].id == 2
     )  #  '19_LLAEHNLDmetASAIKGTGVGGR_20_HLAKAPAK_13_4_p1'
     assert results[2].base_sequence == "HLAKAPAK"  # value of <PeptideSequence>
-    assert results[2].mod_accessions == [{"MS:1002510": 2.0}]
+    assert results[2].mod_accessions == [{"MS:1002510": "2"}]
     assert results[2].mod_positions == [4]
     # location of <Modification> with cross-link acceptor/receiver cvParam
     assert results[2].link_site1 == 4
     # monoisotopicMassDelta of <Modification> with cross-link acceptor/receiver cvParam
     assert results[2].crosslinker_modmass == 0
     # value of cross-link acceptor/receiver cvParam
-    assert results[2].crosslinker_pair_id == "2.0"
+    assert results[2].crosslinker_pair_id == "2"
 
     # id from <Peptide> id
     assert (
@@ -138,7 +138,7 @@ def compare_modified_peptide(results):
     )  # value of <PeptideSequence>
     assert results[3].mod_accessions == [
         {"UNIMOD:34": "Methyl"},
-        {"MS:1001460": "unknown modification", "MS:1002509": 2.0},
+        {"MS:1001460": "unknown modification", "MS:1002509": "2"},
     ]
     assert results[3].mod_positions == [8, 13]
     # location of <Modification> with cross-link acceptor/receiver cvParam
@@ -148,7 +148,7 @@ def compare_modified_peptide(results):
         158.0037644600003, abs=1e-12
     )
     # value of cross-link acceptor/receiver cvParam
-    assert results[3].crosslinker_pair_id == "2.0"
+    assert results[3].crosslinker_pair_id == "2"
 
 
 def compare_modification(results):
@@ -159,10 +159,10 @@ def compare_modification(results):
     assert results[0].residues == "STYK"  # residues from <SearchModification>
     assert not results[0].fixed_mod  # fixedMod from <SearchModification>
     assert (
-        results[0].crosslinker_id == "0.0"
+        results[0].crosslinker_id == "0"
     )  # value from cl donor / acceptor cv term (is a string)
     assert results[0].accessions == {
-        "MS:1002509": 0.0,
+        "MS:1002509": "0",
         "MS:1001460": "unknown modification",
     }
 
@@ -173,21 +173,21 @@ def compare_modification(results):
         1
     ].fixed_mod  # fixedMod from <SearchModification> (is mistake in xml file)
     assert (
-        results[1].crosslinker_id == "0.0"
+        results[1].crosslinker_id == "0"
     )  # value from cl donor  / acceptor cv term (is a string)
-    assert results[1].accessions == {"MS:1002510": 0.0}
+    assert results[1].accessions == {"MS:1002510": "0"}
 
     assert results[2].id == 2  # id from incrementing count
     assert results[2].mass == 158.00377  # massDelta from <SearchModification>
     assert results[2].residues == "."  # residues from <SearchModification>
     assert results[2].fixed_mod  # fixedMod from <SearchModification>
     assert (
-        results[2].crosslinker_id == "0.0"
+        results[2].crosslinker_id == "0"
     )  # value from cl donor  / acceptor cv term (is a string)
     assert results[2].accessions == {
         "MS:1002057": "modification specificity protein N-term",
         "MS:1001460": "unknown modification",
-        "MS:1002509": 0.0,
+        "MS:1002509": "0",
     }
 
     assert results[3].id == 3  # id from incrementing count
@@ -197,12 +197,12 @@ def compare_modification(results):
     assert results[3].residues == "."  # residues from <SearchModification>
     assert results[3].fixed_mod  # fixedMod from <SearchModification>
     assert (
-        results[3].crosslinker_id == "0.0"
+        results[3].crosslinker_id == "0"
     )  # value from cl donor  / acceptor cv term (is a string)
     assert results[3].accessions == {
         "MS:1002057": "modification specificity protein N-term",
         "MS:1001460": "unknown modification",
-        "MS:1002510": 0.0,
+        "MS:1002510": "0",
     }
 
     assert results[4].id == 4  # id from incrementing count
@@ -210,10 +210,10 @@ def compare_modification(results):
     assert results[4].residues == "."  # residues from <SearchModification>
     assert not results[4].fixed_mod  # fixedMod from <SearchModification>
     assert (
-        results[4].crosslinker_id == "1.0"
+        results[4].crosslinker_id == "1"
     )  # value from cl donor  / acceptor cv term (is a string)
     assert results[4].accessions == {
-        "MS:1002509": 1.0,
+        "MS:1002509": "1",
         "MS:1001460": "unknown modification",
     }
 
@@ -222,9 +222,9 @@ def compare_modification(results):
     assert results[5].residues == "."  # residues from <SearchModification>
     assert results[5].fixed_mod  # fixedMod from <SearchModification>
     assert (
-        results[5].crosslinker_id == "1.0"
+        results[5].crosslinker_id == "1"
     )  # value from cl donor  / acceptor cv term (is a string)
-    assert results[5].accessions == {"MS:1002510": 1.0}
+    assert results[5].accessions == {"MS:1002510": "1"}
 
     assert results[6].id == 6  # id from incrementing count
     assert results[6].mass == 15.99491  # massDelta from <SearchModification>

@@ -71,14 +71,14 @@ class TestSchemaValidate:
         finally:
             os.unlink(temp_file)
 
-    def test_unsupported_schema_version(self, capsys):
-        """Test file with unsupported schema version."""
+    def test_unrecognized_version_defaults_to_highest(self, capsys):
+        """Test a file with an unrecognized version defaults to the highest schema."""
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".mzid", delete=False
         ) as f:
             f.write(
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
-                "<MzIdentML "
+                "<MzIdentML version=\"1.4.0\" "
                 'xmlns="http://psidev.info/psi/pi/mzIdentML/1.4" '
                 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
                 'xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.4 '
@@ -88,12 +88,41 @@ class TestSchemaValidate:
             temp_file = f.name
 
         try:
+            # No supported schema matches 1.4.0, so it defaults to the highest
+            # supported schema; the empty body still fails validation.
             result = schema_validate(temp_file)
             assert result is False
 
             captured = capsys.readouterr()
-            assert "Unsupported schema" in captured.out
-            assert "mzIdentML1.4.0.xsd" in captured.out
+            assert "defaulting to highest supported schema" in captured.out
+            assert "mzIdentML1.3.0.xsd" in captured.out
+        finally:
+            os.unlink(temp_file)
+
+    def test_version_attribute_only(self, capsys):
+        """Test a file with only a version attribute (no schemaLocation)."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".mzid", delete=False
+        ) as f:
+            f.write(
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<MzIdentML version="1.2.0" '
+                'xmlns="http://psidev.info/psi/pi/mzIdentML/1.2">\n'
+                "</MzIdentML>\n"
+            )
+            temp_file = f.name
+
+        try:
+            # Resolves the schema from the version attribute alone; the empty
+            # body still fails validation.
+            result = schema_validate(temp_file)
+            assert result is False
+
+            captured = capsys.readouterr()
+            assert (
+                "Using schema mzIdentML1.2.0.xsd (from version attribute"
+                in captured.out
+            )
         finally:
             os.unlink(temp_file)
 

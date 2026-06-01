@@ -252,7 +252,7 @@ class MGFReader(SpectraReader):
         """Convert the spectrum from the reader to a Spectrum object."""
         precursor = {
             "mz": spec["params"]["pepmass"][0],
-            "charge": spec["params"]["charge"][0],
+            "charge": spec["params"].get("charge", [None])[0],
             "intensity": spec["params"]["pepmass"][1],
         }
 
@@ -450,13 +450,13 @@ class MS2Reader(SpectraReader):
         if "PrecursorInt" in spec["params"]:
             precursor = {
                 "mz": spec["params"]["precursor m/z"],
-                "charge": spec["params"]["charge"][0],
+                "charge": spec["params"].get("charge", [None])[0],
                 "intensity": spec["params"]["PrecursorInt"],
             }
         else:
             precursor = {
                 "mz": spec["params"]["precursor m/z"],
-                "charge": spec["params"]["charge"][0],
+                "charge": spec["params"].get("charge", [None])[0],
             }
 
         # parse retention time, default to NaN

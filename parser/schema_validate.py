@@ -1,9 +1,15 @@
 """schema_validate.py - Validate an mzIdentML file against XSD schema using xmllint."""
 
 import os
+import re
 import subprocess
 import xml.etree.ElementTree as ET
 from typing import List, Tuple
+
+# Matches an X.Y.Z version anywhere in a schema filename, allowing for
+# pre-release suffixes like "1.2.0-candidate" — we resolve those to the
+# canonical "1.2.0" schema.
+_VERSION_RE = re.compile(r"(\d+\.\d+\.\d+)")
 
 # Path to schema files relative to this script
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "..", "schema")
@@ -20,20 +26,49 @@ SUPPORTED_SCHEMAS = [
 VALIDATION_TIMEOUT = 10 * 60 # 10 minute timeout
 
 def _extract_schema_version(schema_fname: str) -> str | None:
-    """Extract version string from schema filename (e.g., '1.2.0' from 'mzIdentML1.2.0.xsd')."""
-    if schema_fname.startswith("mzIdentML") and schema_fname.endswith(".xsd"):
-        return schema_fname[9:-4]  # Remove 'mzIdentML' prefix and '.xsd' suffix
-    return None
+    """Extract an X.Y.Z version from a schema filename.
+
+    Matches the first X.Y.Z occurrence, so pre-release names like
+    'mzIdentML1.2.0-candidate.xsd' resolve to '1.2.0'.
+    """
+    match = _VERSION_RE.search(schema_fname)
+    return match.group(1) if match else None
+
+
+# Highest supported schema, used as the fallback when a file's declared
+# version/schemaLocation cannot be resolved to a bundled schema.
+_HIGHEST_SCHEMA = max(
+    SUPPORTED_SCHEMAS,
+    key=lambda s: tuple(int(p) for p in _extract_schema_version(s).split(".")),
+)
+
+
+def _resolve_supported(raw: str) -> Tuple[str | None, str | None]:
+    """Resolve a raw version/filename string to a bundled schema.
+
+    Extracts an X.Y.Z version, builds the canonical 'mzIdentML{X.Y.Z}.xsd' name,
+    and returns (fname, version) if it is a supported schema, else (None, None).
+    """
+    version = _extract_schema_version(raw)
+    if version is None:
+        return None, None
+    fname = f"mzIdentML{version}.xsd"
+    if fname in SUPPORTED_SCHEMAS:
+        return fname, version
+    return None, None
 
 
 def _get_schema_fname(xml_file: str) -> Tuple[str | None, str | None, List[str]]:
-    """Extract the schema filename from the root element's attributes.
+    """Determine which bundled schema to validate the file against.
 
     Uses iterparse to read only the root element without loading the full file.
-    Falls back to the required 'version' attribute if no schemaLocation is present.
+    Resolution order: the required 'version' attribute first, then
+    'schemaLocation', and finally a default to the highest supported schema if
+    neither resolves to a bundled schema.
 
     Returns:
-        Tuple of (schema_fname, schema_version, messages)
+        Tuple of (schema_fname, schema_version, messages). schema_fname is None
+        only when the root element cannot be parsed.
     """
     messages = []
     schema_location = None
@@ -55,24 +90,37 @@ def _get_schema_fname(xml_file: str) -> Tuple[str | None, str | None, List[str]]
         messages.append(f"Failed to parse root element: {e}")
         return None, None, messages
 
+    # 1. The version attribute is required by the mzIdentML spec — prefer it.
+    if version:
+        fname, resolved_version = _resolve_supported(version)
+        if fname:
+            messages.append(
+                f"Using schema {fname} (from version attribute '{version}')."
+            )
+            return fname, resolved_version, messages
+
+    # 2. Fall back to schemaLocation.
     if schema_location:
         schema_parts = schema_location.split()
         if len(schema_parts) % 2 != 0:
             messages.append("Invalid schema location format.")
-            return None, None, messages
-        schema_url = schema_parts[1] if len(schema_parts) == 2 else schema_parts[-1]
-        schema_fname = schema_url.split("/")[-1]
-        return schema_fname, _extract_schema_version(schema_fname), messages
+        else:
+            raw_fname = schema_parts[-1].split("/")[-1]
+            fname, resolved_version = _resolve_supported(raw_fname)
+            if fname:
+                messages.append(
+                    f"Using schema {fname} (resolved from schemaLocation '{raw_fname}')."
+                )
+                return fname, resolved_version, messages
 
-    # Fall back to the version attribute (required by the mzIdentML spec)
-    if version:
-        schema_fname = f"mzIdentML{version}.xsd"
-        return schema_fname, version, messages
-
+    # 3. Nothing resolved — default to the highest supported schema.
+    resolved_version = _extract_schema_version(_HIGHEST_SCHEMA)
     messages.append(
-        "No schema location or version attribute found in the XML document."
+        f"Could not resolve a supported schema (version={version!r}, "
+        f"schemaLocation={schema_location!r}); defaulting to highest "
+        f"supported schema {_HIGHEST_SCHEMA}."
     )
-    return None, None, messages
+    return _HIGHEST_SCHEMA, resolved_version, messages
 
 
 def schema_validate(xml_file: str) -> bool:
@@ -104,10 +152,6 @@ def schema_validate_with_messages(xml_file: str, timeout: int = VALIDATION_TIMEO
     """
     schema_fname, schema_version, messages = _get_schema_fname(xml_file)
     if schema_fname is None:
-        return False, schema_version, messages
-
-    if schema_fname not in SUPPORTED_SCHEMAS:
-        messages.append(f"Unsupported schema: {schema_fname}")
         return False, schema_version, messages
 
     schema_path = os.path.join(SCHEMA_DIR, schema_fname)

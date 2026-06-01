@@ -104,6 +104,7 @@ class AbstractCsvParser(abc.ABC):
         self.contains_crosslinks = False
         self.fasta = False
         self.random_id = 0
+        self.spectra_data_id_lookup = {}
 
         self.warnings = []
         self.write_new_upload()
@@ -208,6 +209,9 @@ class AbstractCsvParser(abc.ABC):
         """
 
         peak_list_readers = {}
+        spectra_data = []
+        spectra_data_id_lookup = {}
+        sd_int_id = 0
         for peak_list_file_name in self.csv_reader.peaklistfilename.unique():
 
             # ToDo: what about .ms2?
@@ -249,8 +253,21 @@ class AbstractCsvParser(abc.ABC):
                     )
 
             peak_list_readers[peak_list_file_name] = peak_list_reader
+            spectra_data.append({
+                "id": sd_int_id,
+                "upload_id": self.writer.upload_id,
+                "location": peak_list_file_name,
+                "name": None,
+                "external_format_documentation": None,
+                "file_format": file_format_accession,
+                "spectrum_id_format": spectrum_id_format_accesion,
+            })
+            spectra_data_id_lookup[peak_list_file_name] = sd_int_id
+            sd_int_id += 1
 
+        self.writer.write_data("spectradata", spectra_data)
         self.peak_list_readers = peak_list_readers
+        self.spectra_data_id_lookup = spectra_data_id_lookup
 
     def parse(self):
         """
