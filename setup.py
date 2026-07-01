@@ -40,7 +40,7 @@ setup(
         "numpy>=1.14.3",
         "pandas>=0.21.0",
         "pymzml>=0.7.8",
-        "pyteomics>=4.7.3",
+        "pyteomics @ git+https://github.com/levitsky/pyteomics.git@a4a4ee4daff04a924d606bcf408aa26b790c1da5",
         "requests>=2.31.0",
         "urllib3>=2.6.3",
         "psycopg2-binary",
