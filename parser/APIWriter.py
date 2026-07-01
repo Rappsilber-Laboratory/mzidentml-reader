@@ -80,13 +80,6 @@ class APIWriter(Writer):
         """Return cumulative record counts written per table."""
         return dict(self._write_counts)
 
-    @staticmethod
-    def _strip_none_values(
-        data: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
-        """Remove keys with None values to reduce payload size."""
-        return [{k: v for k, v in row.items() if v is not None} for row in data]
-
     def write_data(
         self, table: str, data: list[dict[str, Any]] | dict[str, Any]
     ) -> dict[str, Any] | None:
@@ -103,9 +96,6 @@ class APIWriter(Writer):
 
         record_count = len(data)
         self._track_count(table, record_count)
-
-        # Strip None values to reduce payload size
-        data = self._strip_none_values(data)
 
         API_ENDPOINT = self.base_url + "/write_data"
         payload = {
