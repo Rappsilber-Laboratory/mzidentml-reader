@@ -126,6 +126,13 @@ class APIWriter(Writer):
         logger.info("write_new_upload")
 
         response = self._post(API_ENDPOINT, data)
+        if response.status_code >= 400:
+            # Surface the server's error detail (raise_for_status only shows the
+            # HTTP reason phrase, e.g. bare "Internal Server Error").
+            logger.error(
+                f"write_new_upload failed: status={response.status_code} "
+                f"body={response.text}"
+            )
         response.raise_for_status()
         result = response.json()
 
