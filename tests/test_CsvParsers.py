@@ -45,6 +45,18 @@ def test_full_csv_parser_postgres_mgf(tmpdir, db_info, use_database, engine):
         # compare_db_sequence(rs.fetchall())
 
 
+def assert_scores_are_json_objects(id_parser, engine):
+    """match.scores must be stored as a JSON object, not a JSON-encoded string (regression:
+    the csv parsers used to json.dumps the dict before writing it to the JSON column)."""
+    with engine.connect() as conn:
+        stmt = Table("match", id_parser.writer.meta, autoload_with=engine, quote=False).select()
+        results = conn.execute(stmt).fetchall()
+    assert results
+    for r in results:
+        assert isinstance(r.scores, dict), r.scores
+        assert isinstance(r.scores["score"], (int, float))
+
+
 def test_no_peak_lists_csv_parser_postgres(tmpdir, db_info, use_database, engine):
     # file paths
     fixtures_dir = os.path.join(os.path.dirname(__file__), 'fixtures', 'csv_parser',
@@ -55,7 +67,8 @@ def test_no_peak_lists_csv_parser_postgres(tmpdir, db_info, use_database, engine
     copyfile(fasta_file, os.path.join(str(tmpdir), ntpath.basename(fasta_file)))
 
     # parse the csv file
-    parse_no_peak_lists_csv_into_postgresql(csv, None, tmpdir, logger, use_database, engine)
+    id_parser = parse_no_peak_lists_csv_into_postgresql(csv, None, tmpdir, logger, use_database, engine)
+    assert_scores_are_json_objects(id_parser, engine)
 
 
 def test_links_only_csv_parser_postgres(tmpdir, db_info, use_database, engine):
@@ -67,7 +80,8 @@ def test_links_only_csv_parser_postgres(tmpdir, db_info, use_database, engine):
     copyfile(fasta_file, os.path.join(str(tmpdir), ntpath.basename(fasta_file)))
 
     # parse the csv file
-    parse_links_only_csv_into_postgresql(csv, None, tmpdir, logger, use_database, engine)
+    id_parser = parse_links_only_csv_into_postgresql(csv, None, tmpdir, logger, use_database, engine)
+    assert_scores_are_json_objects(id_parser, engine)
 
 
 def test_ambiguous_links_only_csv_parser_postgres(tmpdir, db_info, use_database, engine):

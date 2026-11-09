@@ -23,7 +23,7 @@ def get_version(rel_path):
 
 setup(
     name="mzidentml-reader",
-    version="0.4.25",
+    version="0.4.26",
     description="mzidentml-reader uses pyteomics (https://pyteomics.readthedocs.io/en/latest/index.html) to "
     "parse mzIdentML files (v1.2.0 and v1.3.0) and extract crosslink information. Results are written to a "
     "relational database (PostgreSQL or SQLite) using sqlalchemy.",
@@ -40,18 +40,15 @@ setup(
         "numpy>=1.14.3",
         "pandas>=0.21.0",
         "pymzml>=0.7.8",
-        "pyteomics>=5.0.0",
-        "psims",
+        "pyteomics[xml]>=5.0.2",  # xml extra pulls in lxml, numpy, psims
         "requests>=2.31.0",
-        "urllib3>=2.6.3",
+        "urllib3>=2.8.0",
         "psycopg2-binary",
-        "sqlalchemy>=2.0.38",
+        "sqlalchemy>=2.0.38,<2.1",  # 2.1 defaults postgresql:// to psycopg v3
         "sqlalchemy-utils",
         "obonet==1.1.0",
         "orjson",
-        "virtualenv>=20.36.1",
-        "filelock>=3.20.3",
-        "certifi>=2023.7.22",
+        "certifi>=2026.10.23",
     ],
     entry_points={
         "console_scripts": ["process_dataset = parser.process_dataset:main"]

@@ -1,6 +1,5 @@
 """"""
 
-import json
 import re
 from time import time
 
@@ -472,7 +471,7 @@ class FullCsvParser(AbstractCsvParser):
             #
             # SPECTRUM IDENTIFICATIONS
             #
-            scores = json.dumps({"score": score})
+            scores = {"score": score}  # JSON column: pass a dict (json.dumps double-encoded it)
 
             # try:
             #     meta1 = id_item[self.meta_columns[0]]
