@@ -1,4 +1,3 @@
-import json
 import re
 from time import time
 
@@ -246,7 +245,7 @@ class LinksOnlyCsvParser(AbstractCsvParser):
             #
             # SPECTRUM IDENTIFICATIONS
             #
-            scores = json.dumps({"score": score})
+            scores = {"score": score}  # JSON column: pass a dict (json.dumps double-encoded it)
 
             spectrum_identification = {
                 "id": identification_id,
