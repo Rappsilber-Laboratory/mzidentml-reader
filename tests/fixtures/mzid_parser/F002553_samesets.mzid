@@ -3,6 +3,7 @@
   <cvList>
     <cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="4.1.69"/>
     <cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"/>
+    <cv id="XLMOD" fullName="XLMOD" uri="https://raw.githubusercontent.com/HUPO-PSI/xlmod-CV/main/XLMOD.obo"/>
     <cv id="UO" fullName="UNIT-ONTOLOGY" uri="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo"/>
   </cvList>
   <AnalysisSoftwareList>
@@ -652,7 +653,7 @@
     <Peptide id="peptide_547_1_p1">
       <PeptideSequence>CELAAAMKR</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1"/>
       </Modification>
     </Peptide>
@@ -665,7 +666,7 @@
     <Peptide id="peptide_550_1_p1">
       <PeptideSequence>CELAAAMKR</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2"/>
       </Modification>
     </Peptide>
@@ -687,7 +688,7 @@
     <Peptide id="peptide_617_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3"/>
       </Modification>
     </Peptide>
@@ -700,7 +701,7 @@
     <Peptide id="peptide_618_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4"/>
       </Modification>
     </Peptide>
@@ -713,7 +714,7 @@
     <Peptide id="peptide_619_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5"/>
       </Modification>
     </Peptide>
@@ -726,7 +727,7 @@
     <Peptide id="peptide_620_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6"/>
       </Modification>
     </Peptide>
@@ -739,7 +740,7 @@
     <Peptide id="peptide_621_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7"/>
       </Modification>
     </Peptide>
@@ -752,7 +753,7 @@
     <Peptide id="peptide_622_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8"/>
       </Modification>
     </Peptide>
@@ -765,7 +766,7 @@
     <Peptide id="peptide_625_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9"/>
       </Modification>
     </Peptide>
@@ -778,7 +779,7 @@
     <Peptide id="peptide_626_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10"/>
       </Modification>
     </Peptide>
@@ -791,7 +792,7 @@
     <Peptide id="peptide_628_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11"/>
       </Modification>
     </Peptide>
@@ -804,7 +805,7 @@
     <Peptide id="peptide_630_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12"/>
       </Modification>
     </Peptide>
@@ -817,7 +818,7 @@
     <Peptide id="peptide_681_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13"/>
       </Modification>
     </Peptide>
@@ -830,7 +831,7 @@
     <Peptide id="peptide_689_1_p1">
       <PeptideSequence>CKGTDVQAWIR</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14"/>
       </Modification>
     </Peptide>
@@ -986,7 +987,7 @@
     <Peptide id="peptide_807_1_p1">
       <PeptideSequence>CKGTDVQAWIR</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15"/>
       </Modification>
     </Peptide>
@@ -1149,7 +1150,7 @@
     <Peptide id="peptide_888_1_p1">
       <PeptideSequence>CELAAAMK</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16"/>
       </Modification>
     </Peptide>
@@ -1197,7 +1198,7 @@
     <Peptide id="peptide_1025_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17"/>
       </Modification>
     </Peptide>
@@ -1210,7 +1211,7 @@
     <Peptide id="peptide_1026_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18"/>
       </Modification>
     </Peptide>
@@ -1223,7 +1224,7 @@
     <Peptide id="peptide_1029_1_p1">
       <PeptideSequence>CKGTDVQAWIR</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="19"/>
       </Modification>
     </Peptide>
@@ -1236,7 +1237,7 @@
     <Peptide id="peptide_1030_1_p1">
       <PeptideSequence>CKGTDVQAWIR</PeptideSequence>
       <Modification location="1" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="20"/>
       </Modification>
     </Peptide>
@@ -1249,7 +1250,7 @@
     <Peptide id="peptide_1083_1_p1">
       <PeptideSequence>HGLDNYRGYSLGNWVCAAK</PeptideSequence>
       <Modification location="16" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="21"/>
       </Modification>
     </Peptide>
@@ -1265,7 +1266,7 @@
     <Peptide id="peptide_1101_1">
       <PeptideSequence>NLCNIPCSALLSSDITASVNCAK</PeptideSequence>
       <Modification location="3" residues="C" monoisotopicMassDelta="-2.01565">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
       </Modification>
       <Modification location="21" residues="C" monoisotopicMassDelta="125.047679">
         <cvParam accession="UNIMOD:108" name="Nethylmaleimide" cvRef="UNIMOD"/>
@@ -1274,7 +1275,7 @@
     <Peptide id="peptide_1101_2">
       <PeptideSequence>NLCNIPCSALLSSDTIASVNCAK</PeptideSequence>
       <Modification location="3" residues="C" monoisotopicMassDelta="-2.01565">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
       </Modification>
       <Modification location="21" residues="C" monoisotopicMassDelta="125.047679">
         <cvParam accession="UNIMOD:108" name="Nethylmaleimide" cvRef="UNIMOD"/>
@@ -1283,7 +1284,7 @@
     <Peptide id="peptide_1115_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="22"/>
       </Modification>
     </Peptide>
@@ -1296,7 +1297,7 @@
     <Peptide id="peptide_1116_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="23"/>
       </Modification>
     </Peptide>
@@ -1309,7 +1310,7 @@
     <Peptide id="peptide_1117_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="24"/>
       </Modification>
     </Peptide>
@@ -1322,7 +1323,7 @@
     <Peptide id="peptide_1118_1_p1">
       <PeptideSequence>GYSLGNWVCAAK</PeptideSequence>
       <Modification location="9" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="25"/>
       </Modification>
     </Peptide>
@@ -1335,7 +1336,7 @@
     <Peptide id="peptide_1126_1_p1">
       <PeptideSequence>VFGRCELAAAMK</PeptideSequence>
       <Modification location="5" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="26"/>
       </Modification>
       <Modification location="11" residues="M" monoisotopicMassDelta="15.994915">
@@ -1352,7 +1353,7 @@
     <Peptide id="peptide_1128_1_p1">
       <PeptideSequence>VFGRCELAAAMK</PeptideSequence>
       <Modification location="5" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="27"/>
       </Modification>
       <Modification location="11" residues="M" monoisotopicMassDelta="15.994915">
@@ -1369,7 +1370,7 @@
     <Peptide id="peptide_1129_1_p1">
       <PeptideSequence>VFGRCELAAAMK</PeptideSequence>
       <Modification location="5" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="28"/>
       </Modification>
       <Modification location="11" residues="M" monoisotopicMassDelta="15.994915">
@@ -1386,7 +1387,7 @@
     <Peptide id="peptide_1130_1_p1">
       <PeptideSequence>VFGRCELAAAMK</PeptideSequence>
       <Modification location="5" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="29"/>
       </Modification>
       <Modification location="11" residues="M" monoisotopicMassDelta="15.994915">
@@ -1457,7 +1458,7 @@
     <Peptide id="peptide_1479_1_p1">
       <PeptideSequence>HGLDNYRGYSLGNWVCAAK</PeptideSequence>
       <Modification location="16" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="30"/>
       </Modification>
     </Peptide>
@@ -1470,7 +1471,7 @@
     <Peptide id="peptide_1480_1_p1">
       <PeptideSequence>HGLDNYRGYSLGNWVCAAK</PeptideSequence>
       <Modification location="16" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="31"/>
       </Modification>
     </Peptide>
@@ -1486,7 +1487,7 @@
         <cvParam accession="UNIMOD:108" name="Nethylmaleimide" cvRef="UNIMOD"/>
       </Modification>
       <Modification location="7" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="32"/>
       </Modification>
       <Modification location="21" residues="C" monoisotopicMassDelta="125.047679">
@@ -1502,7 +1503,7 @@
     <Peptide id="peptide_1495_2_p1">
       <PeptideSequence>NLCNIPCSALLSSDITASVNCAK</PeptideSequence>
       <Modification location="3" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="33"/>
       </Modification>
       <Modification location="7" residues="C" monoisotopicMassDelta="125.047679">
@@ -1524,7 +1525,7 @@
         <cvParam accession="UNIMOD:108" name="Nethylmaleimide" cvRef="UNIMOD"/>
       </Modification>
       <Modification location="7" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="34"/>
       </Modification>
       <Modification location="21" residues="C" monoisotopicMassDelta="125.047679">
@@ -1540,7 +1541,7 @@
     <Peptide id="peptide_1496_2_p1">
       <PeptideSequence>NLCNIPCSALLSSDITASVNCAK</PeptideSequence>
       <Modification location="3" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="35"/>
       </Modification>
       <Modification location="7" residues="C" monoisotopicMassDelta="125.047679">
@@ -1562,7 +1563,7 @@
         <cvParam accession="UNIMOD:108" name="Nethylmaleimide" cvRef="UNIMOD"/>
       </Modification>
       <Modification location="7" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="36"/>
       </Modification>
       <Modification location="21" residues="C" monoisotopicMassDelta="125.047679">
@@ -1578,7 +1579,7 @@
     <Peptide id="peptide_1497_2_p1">
       <PeptideSequence>NLCNIPCSALLSSDITASVNCAK</PeptideSequence>
       <Modification location="3" residues="C" monoisotopicMassDelta="-2.015650">
-        <cvParam accession="UNIMOD:2020" name="Xlink:Disulfide" cvRef="UNIMOD"/>
+        <cvParam accession="XLMOD:02009" name="Disulfide" cvRef="XLMOD"/>
         <cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="37"/>
       </Modification>
       <Modification location="7" residues="C" monoisotopicMassDelta="125.047679">

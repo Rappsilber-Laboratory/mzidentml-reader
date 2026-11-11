@@ -2,7 +2,7 @@
 <MzIdentML id="12345" version="1.2.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 http://www.psidev.info/files/mzIdentML1.2.0.xsd" creationDate="2021-09-07T14:34:46" >
 <cvList >
   <cv fullName="PSI-MS" version="4.0.0" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"></cv>
-  <cv fullName="XLMOD" uri="resource:///XLMOD.obo" id="XLMOD"></cv>
+  <cv fullName="XLMOD" uri="https://raw.githubusercontent.com/HUPO-PSI/xlmod-CV/main/XLMOD.obo" id="XLMOD"></cv>
   <cv fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" id="UNIMOD"></cv>
   <cv fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" id="UO"></cv>
 </cvList>
