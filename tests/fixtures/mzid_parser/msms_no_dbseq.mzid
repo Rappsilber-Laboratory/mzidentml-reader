@@ -4,9 +4,9 @@
         <cv fullName="psi-ms" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
     </cvList>
     <AnalysisSoftwareList>
-        <AnalysisSoftware id="AS1" name="Test Search Engine" version="1.0">
+        <AnalysisSoftware id="AS1" name="X!Tandem" version="1.0">
             <SoftwareName>
-                <userParam name="Test Search Engine"/>
+                <cvParam accession="MS:1001476" name="X!Tandem" cvRef="PSI-MS"/>
             </SoftwareName>
         </AnalysisSoftware>
     </AnalysisSoftwareList>
@@ -43,7 +43,7 @@
         <Inputs>
             <SearchDatabase id="SDB1" name="none" location="none">
                 <FileFormat>
-                    <cvParam accession="MS:1001013" name="No Database Info" cvRef="PSI-MS"/>
+                    <cvParam accession="MS:1001348" name="FASTA format" cvRef="PSI-MS"/>
                 </FileFormat>
                 <DatabaseName>
                     <userParam name="none"/>
@@ -61,7 +61,7 @@
         <AnalysisData>
             <SpectrumIdentificationList id="SIL1" numSequencesSearched="0">
                 <SpectrumIdentificationResult id="SIR1" spectrumID="scan=1" spectraData_ref="SD1">
-                    <SpectrumIdentificationItem id="SII1" chargeState="2" experimentalMassToCharge="500.0" peptide_ref="PEP1" rank="1" passThreshold="true">
+                    <SpectrumIdentificationItem id="SII1" chargeState="2" experimentalMassToCharge="510.2350" calculatedMassToCharge="510.2344" peptide_ref="PEP1" rank="1" passThreshold="true">
                         <cvParam accession="MS:1001331" name="X!Tandem:hyperscore" value="20.0" cvRef="PSI-MS"/>
                     </SpectrumIdentificationItem>
                 </SpectrumIdentificationResult>

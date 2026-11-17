@@ -4,9 +4,9 @@
         <cv fullName="psi-ms" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
     </cvList>
     <AnalysisSoftwareList>
-        <AnalysisSoftware id="AS1" name="Test De Novo Tool" version="1.0">
+        <AnalysisSoftware id="AS1" name="PEAKS Studio" version="1.0">
             <SoftwareName>
-                <userParam name="Test De Novo Tool"/>
+                <cvParam accession="MS:1001946" name="PEAKS Studio" cvRef="PSI-MS"/>
             </SoftwareName>
         </AnalysisSoftware>
     </AnalysisSoftwareList>
@@ -43,7 +43,7 @@
         <Inputs>
             <SearchDatabase id="SDB1" name="none" location="none">
                 <FileFormat>
-                    <cvParam accession="MS:1001013" name="No Database Info" cvRef="PSI-MS"/>
+                    <cvParam accession="MS:1001348" name="FASTA format" cvRef="PSI-MS"/>
                 </FileFormat>
                 <DatabaseName>
                     <userParam name="none"/>
@@ -61,8 +61,8 @@
         <AnalysisData>
             <SpectrumIdentificationList id="SIL1" numSequencesSearched="0">
                 <SpectrumIdentificationResult id="SIR1" spectrumID="scan=1" spectraData_ref="SD1">
-                    <SpectrumIdentificationItem id="SII1" chargeState="2" experimentalMassToCharge="500.0" peptide_ref="PEP1" rank="1" passThreshold="true">
-                        <cvParam accession="MS:1001331" name="X!Tandem:hyperscore" value="20.0" cvRef="PSI-MS"/>
+                    <SpectrumIdentificationItem id="SII1" chargeState="2" experimentalMassToCharge="510.2350" calculatedMassToCharge="510.2344" peptide_ref="PEP1" rank="1" passThreshold="true">
+                        <cvParam accession="MS:1001950" name="PEAKS:peptideScore" value="20.0" cvRef="PSI-MS"/>
                     </SpectrumIdentificationItem>
                 </SpectrumIdentificationResult>
             </SpectrumIdentificationList>

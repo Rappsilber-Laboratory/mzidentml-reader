@@ -632,7 +632,9 @@ class MzIdParser:
 
             # Seq is optional child elem of DBSequence
             if "Seq" in db_sequence and isinstance(db_sequence["Seq"], str):
-                db_sequence_data["sequence"] = db_sequence["Seq"]
+                # the schema forbids whitespace in Seq, but strip any that slipped in
+                # (e.g. pretty-printed files) so it doesn't end up in the sequence
+                db_sequence_data["sequence"] = "".join(db_sequence["Seq"].split())
             elif "length" in db_sequence:
                 db_sequence_data["sequence"] = "X" * db_sequence["length"]
 
