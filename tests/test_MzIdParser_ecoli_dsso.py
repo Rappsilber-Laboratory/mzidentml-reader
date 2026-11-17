@@ -408,20 +408,15 @@ def compare_spectrum_mgf(conn, peak_list_folder):
             assert r.peak_list_file_name == pl
             assert r.precursor_mz == spectrum["params"]["pepmass"][0]
             assert r.precursor_charge == spectrum["params"]["charge"][0]
-            # check that mz and intensity values are as expected
-            # 1. unpacking the blob
-            assert_array_equal(
-                struct.unpack("%sd" % (len(r.mz) // 8), r.mz),
-                spectrum["m/z array"],
-            )
-            assert_array_equal(
-                struct.unpack("%sd" % (len(r.intensity) // 8), r.intensity),
-                spectrum["intensity array"],
-            )
-            # 2. using np.frombuffer (this works because np assumes double precision as default)
-            assert_array_equal(np.frombuffer(r.mz), spectrum["m/z array"])
-            assert_array_equal(
-                np.frombuffer(r.intensity), spectrum["intensity array"]
+            # check that mz and intensity values are as expected: PostgreSQL has
+            # float8[] m/z (exact) and real[] intensity (float32 precision),
+            # SQLite has packed float64 blobs
+            mz, intensity = r.mz, r.intensity
+            if isinstance(mz, bytes):
+                mz, intensity = np.frombuffer(mz), np.frombuffer(intensity)
+            assert_array_equal(mz, spectrum["m/z array"])
+            np.testing.assert_allclose(
+                intensity, spectrum["intensity array"], rtol=1e-6
             )
 
 
@@ -706,7 +701,8 @@ def test_psql_mzml_mzid_parser(use_database, engine):
         # Spectrum->precursorList->precursor[0]->selectedIonList->selectedIon[0]
         assert results[0].precursor_mz == 945.677381209342  # selected ion m/z
         assert results[0].precursor_charge == 5  # charge state
-        assert results[0].mz == (
+        # m/z is float8[]: packing it gives back the original float64 bytes
+        assert struct.pack(f"{len(results[0].mz)}d", *results[0].mz) == (
             b"\x00\x00\x00\x80g\x03Z@\x00\x00\x00\xe00\t[@\x00\x00\x00`\xfe\x1f["
             b"@\x00\x00\x00\xe0\x93\x84[@\x00\x00\x00\xc0\xca\xc4[@\x00\x00\x00\xa0{\xe3["
             b"@\x00\x00\x00@\x8c\xc5\\@\x00\x00\x00\xa0e\x04]@\x00\x00\x00\x00\x88\x04]@\x00\x00"
@@ -1007,7 +1003,8 @@ def test_psql_mzml_mzid_parser(use_database, engine):
             b"E4\x9e@\x00\x00\x00\x00e|\x9f@\x00\x00\x00\xe0D\t\xa5@\x00\x00\x00\xe0\x96\xae\xa6"
             b"@\x00\x00\x00`\xce\x8a\xae@\x00\x00\x00\x00\xbf\xa5\xae@"
         )
-        assert results[0].intensity == (
+        # intensity is real[] (float32), so compare with float32 precision
+        np.testing.assert_allclose(results[0].intensity, np.frombuffer(
             b"\x00\x00\x00 \xc7P\xdc@\x00\x00\x00\xa0\xdf\x9c\xaf@\x00\x00\x00\x80\x0f\xe8"
             b"\xaf@\x00\x00\x00`\x95<\x05A\x00\x00\x00\xc0\xea\xb1\xb5@\x00\x00\x00\xa0"
             b"\x96\x05\xb1@\x00\x00\x00`\x914\xbc@\x00\x00\x00\xe0\xbf\x02\xbe@\x00\x00"
@@ -1335,7 +1332,7 @@ def test_psql_mzml_mzid_parser(use_database, engine):
             b"\x80m\x94\xc1@\x00\x00\x00\x00s\xb1\xbb@\x00\x00\x00\xa0\n\xee\xb4@\x00\x00"
             b"\x00`\xf1\xfa\xb2@\x00\x00\x00\xe0\x083\xb3@\x00\x00\x00\x00\xf1=\xb5@\x00"
             b"\x00\x00\xc0\xe9\x9f\xb2@"
-        )
+        ), rtol=1e-6)
 
         # Match
         stmt = Table(
