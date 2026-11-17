@@ -37,7 +37,7 @@ class LinksOnlyCsvParser(AbstractCsvParser):
 
         # list of peptides that were already seen - index in list is peptide_id
         # pep sequence including cross-link site and cross-link mass is unique identifier
-        seen_peptides = []
+        seen_peptides = {}  # identifier -> peptide id (dict for O(1) lookup)
 
         crosslinker_pair_count = 0
 
@@ -126,7 +126,7 @@ class LinksOnlyCsvParser(AbstractCsvParser):
 
             # pepPos2 - if pepPos2 is not set fill list with default value (-1)
             # ToDo: might need changing for xiUI where pepPos is not optional
-            self.logger.info(id_item["abspos2"])
+            self.logger.debug(id_item["abspos2"])
             abs2 = id_item["abspos2"]
             if abs2 == -1:  # or math.isnan(abs2): # todo - check
                 abs_pos_list2 = [-1] * len(
@@ -163,8 +163,8 @@ class LinksOnlyCsvParser(AbstractCsvParser):
                 unique_pep_identifier1 = "%s-%s" % (1, crosslinker_pair_id)
 
                 if unique_pep_identifier1 not in seen_peptides:
-                    seen_peptides.append(unique_pep_identifier1)
-                    pep1_id = len(seen_peptides) - 1
+                    pep1_id = len(seen_peptides)
+                    seen_peptides[unique_pep_identifier1] = pep1_id
                     peptide1 = {
                         "id": pep1_id,
                         "upload_id": self.writer.upload_id,
@@ -178,15 +178,15 @@ class LinksOnlyCsvParser(AbstractCsvParser):
                     }
                     peptides.append(peptide1)
                 else:
-                    pep1_id = seen_peptides.index(unique_pep_identifier1)
+                    pep1_id = seen_peptides[unique_pep_identifier1]
 
                 if crosslinked_id_item:
                     # peptide - 2
                     unique_pep_identifier2 = "%s-%s" % (2, crosslinker_pair_id)
 
                     if unique_pep_identifier2 not in seen_peptides:
-                        seen_peptides.append(unique_pep_identifier2)
-                        pep2_id = len(seen_peptides) - 1
+                        pep2_id = len(seen_peptides)
+                        seen_peptides[unique_pep_identifier2] = pep2_id
                         peptide2 = {
                             "id": pep2_id,
                             "upload_id": self.writer.upload_id,
@@ -200,7 +200,7 @@ class LinksOnlyCsvParser(AbstractCsvParser):
                         }
                         peptides.append(peptide2)
                     else:
-                        pep2_id = seen_peptides.index(unique_pep_identifier2)
+                        pep2_id = seen_peptides[unique_pep_identifier2]
                 else:
                     pep2_id = None
 
