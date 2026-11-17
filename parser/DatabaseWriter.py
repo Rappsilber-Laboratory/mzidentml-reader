@@ -1,11 +1,34 @@
 """DatabaseWriter class for writing results to a postgresql relational database."""
 
+import struct
 from parser.database.create_db_schema import create_schema
 from parser.Writer import Writer
 from typing import Any
 
-from sqlalchemy import MetaData, Table, create_engine
+import numpy as np
+from sqlalchemy import ARRAY, LargeBinary, MetaData, Table, create_engine
 from sqlalchemy_utils import database_exists
+
+
+def _adapt_numeric_array(value: Any, column_type: Any) -> Any:
+    """Convert a numeric array (numpy array, list or packed float64 bytes) to what the
+    column holds: a list for array columns, packed native float64 bytes for binary columns.
+
+    This lets the same parser output go into PostgreSQL float8[]/real[] columns (xiview.org)
+    as well as bytea / BLOB columns (older PostgreSQL schemas, SQLite).
+    """
+    if value is None:
+        return None
+    if isinstance(column_type, ARRAY):
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            return np.frombuffer(value, dtype=np.float64).tolist()
+        return np.asarray(value, dtype=np.float64).tolist()
+    if isinstance(column_type, LargeBinary):
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            return bytes(value)
+        values = np.asarray(value, dtype=np.float64).tolist()
+        return struct.pack(f"{len(values)}d", *values)
+    return value
 
 
 class DatabaseWriter(Writer):
@@ -53,6 +76,23 @@ class DatabaseWriter(Writer):
         # pad copies rather than mutating the caller's dicts
         data = [{**dict.fromkeys(keys), **r} for r in data]
         table = Table(table, self.meta, autoload_with=self.engine)
+        array_columns = [
+            k
+            for k in keys
+            if k in table.c
+            and isinstance(table.c[k].type, (ARRAY, LargeBinary))
+        ]
+        if array_columns:
+            data = [
+                {
+                    **r,
+                    **{
+                        k: _adapt_numeric_array(r[k], table.c[k].type)
+                        for k in array_columns
+                    },
+                }
+                for r in data
+            ]
         with self.engine.connect() as conn:
             page_size = max(1, 32766 // len(keys))
             for i in range(0, len(data), page_size):
