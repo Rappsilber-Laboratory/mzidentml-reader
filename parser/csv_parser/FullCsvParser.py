@@ -48,6 +48,8 @@ class FullCsvParser(AbstractCsvParser):
         peptide_evidences = []
         seen_evidences = set()
         spectrum_identifications = []
+        protocols = []  # SpectrumIdentificationProtocols, one per fragment tolerance
+        sip_ids = {}  # fragment tolerance string -> protocol id
         spectra = []
         peptides = []
         proteins = set()
@@ -185,12 +187,32 @@ class FullCsvParser(AbstractCsvParser):
                     % (id_item["passthreshold"], row_number)
                 )
 
-            # fragmenttolerance - ToDo: fix - would beed to write SpectrumIdentificationProtocol for CSV
-            # if not re.match('^([0-9.]+) (ppm|Da)$', str(id_item['fragmenttolerance'])):
-            #     raise CsvParseException(
-            #         'Invalid FragmentTolerance value: %s in row: %s' % (id_item['fragmenttolerance'], row_number))
-            # else:
-            #     fragment_tolerance = id_item['fragmenttolerance']
+            # fragmenttolerance: one SpectrumIdentificationProtocol per distinct value, so
+            # xiVIEW can annotate spectra (it reads the tolerance from the match's protocol)
+            frag_tol_str = str(id_item["fragmenttolerance"]).strip()
+            sip_id = sip_ids.get(frag_tol_str)
+            if sip_id is None:
+                m = re.fullmatch(r"([0-9]*\.?[0-9]+)\s*(ppm|da)", frag_tol_str, re.IGNORECASE)
+                if m is None:
+                    raise CsvParseException(
+                        "Invalid FragmentTolerance value: %s in row: %s"
+                        % (frag_tol_str, row_number)
+                    )
+                sip_id = len(sip_ids)
+                sip_ids[frag_tol_str] = sip_id
+                protocols.append(
+                    {
+                        "id": sip_id,
+                        "upload_id": self.writer.upload_id,
+                        "sip_ref": "csv_protocol_%d" % sip_id,
+                        "analysis_software": {},
+                        "search_type": {},
+                        "additional_search_params": {},
+                        "threshold": {},
+                        "frag_tol": float(m.group(1)),
+                        "frag_tol_unit": "ppm" if m.group(2).lower() == "ppm" else "Da",
+                    }
+                )
 
             # iontypes
             # ions = id_item['iontypes'].split(';')
@@ -489,8 +511,14 @@ class FullCsvParser(AbstractCsvParser):
             spectrum_identification = {
                 "id": identification_id,
                 "upload_id": self.writer.upload_id,
-                "spectrum_id": spectrum_id,
-                # 'spectra_data_ref': peak_list_file_name,
+                # must match the spectrum row's key (id = scan id, spectra_data_id)
+                "spectrum_id": scan_id,
+                "spectra_data_id": (
+                    self.spectra_data_id_lookup.get(peak_list_file_name)
+                    if self.peak_list_dir
+                    else None
+                ),
+                "sip_id": sip_id,
                 "pep1_id": pep1_id,
                 "pep2_id": pep2_id,
                 "charge_state": int(charge),
@@ -570,6 +598,7 @@ class FullCsvParser(AbstractCsvParser):
         self.logger.info("write spectra to DB - start")
         try:
             self.writer.write_data("dbsequence", db_sequences)
+            self.writer.write_data("spectrumidentificationprotocol", protocols)
             self.writer.write_data("modifiedpeptide", peptides)
             self.writer.write_data("peptideevidence", peptide_evidences)
             if self.peak_list_dir:
