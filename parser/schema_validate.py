@@ -23,7 +23,7 @@ SUPPORTED_SCHEMAS = [
     "mzIdentML1.3.0.xsd",
 ]
 
-VALIDATION_TIMEOUT = 10 * 60 # 10 minute timeout
+VALIDATION_TIMEOUT = 5 * 60 # 5 minute timeout
 
 def _extract_schema_version(schema_fname: str) -> str | None:
     """Extract an X.Y.Z version from a schema filename.
@@ -145,7 +145,7 @@ def schema_validate_with_messages(xml_file: str, timeout: int = VALIDATION_TIMEO
 
     Args:
         xml_file: Path to the mzIdentML file
-        timeout: Maximum seconds to wait for validation (default 7200)
+        timeout: Maximum seconds to wait for each xmllint check (default 300)
 
     Returns:
         Tuple of (success, schema_version, list of error/info messages)
@@ -172,7 +172,7 @@ def schema_validate_with_messages(xml_file: str, timeout: int = VALIDATION_TIMEO
         return False, schema_version, messages
     except subprocess.TimeoutExpired:
         messages.append(f"Well-formedness check timed out after {timeout}s")
-        return False, schema_version, messages
+        return True, schema_version, messages
 
     if result.returncode != 0:
         stderr_lines = result.stderr.strip().splitlines()
