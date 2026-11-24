@@ -143,6 +143,44 @@ def test_no_peak_lists_csv_parser_sqllite(tmpdir, db_info, use_database, engine)
     parse_no_peak_lists_csv_into_sqllite(csv, None, tmpdir, logger, use_database, engine)
 
 
+@pytest.mark.parametrize("scan_ids", [
+    ['1001', '', '0007', '12'],  # numbers with empty cells: pandas would make them floats
+    ['1001', '', 'controllerType=0 controllerNumber=1 scan=12', 'index=3'],
+])
+def test_no_peak_lists_csv_keeps_scanid_as_spectrum_id(tmpdir, scan_ids):
+    """The scanid column is the spectrum's identifier in the source data: it is stored as
+    match.spectrum_id exactly as written (not as a number: a column with empty cells would
+    otherwise turn 1001 into "1001.0"), and an empty cell as NULL."""
+    import csv as csvlib
+    import sqlite3
+    from models.base import Base
+    fixtures_dir = os.path.join(os.path.dirname(__file__), 'fixtures', 'csv_parser',
+                                'nopeaklist_csv')
+    copyfile(os.path.join(fixtures_dir, 'polII-uniprot.fasta'),
+             os.path.join(str(tmpdir), 'polII-uniprot.fasta'))
+    with open(os.path.join(fixtures_dir, 'PolII_nopeaklist.csv'), newline='') as f:
+        rows = list(csvlib.reader(f))
+    csv_path = os.path.join(str(tmpdir), 'with_scanid.csv')
+    expected = {}
+    with open(csv_path, 'w', newline='') as f:
+        w = csvlib.writer(f)
+        w.writerow(rows[0] + ['ScanId'])
+        for i, row in enumerate(rows[1:]):
+            sid = scan_ids[i % len(scan_ids)]
+            w.writerow(row + [sid])
+            expected[str(i)] = sid or None
+    conn_str = f"sqlite:///{os.path.join(str(tmpdir), 'test.db')}"
+    engine = create_engine(conn_str)
+    Base.metadata.create_all(engine)
+    engine.dispose()
+    parse_no_peak_lists_csv_into_sqllite(csv_path, None, tmpdir, logger, None, engine)
+
+    con = sqlite3.connect(os.path.join(str(tmpdir), 'test.db'))
+    stored = dict(con.execute("SELECT id, spectrum_id FROM match").fetchall())
+    con.close()
+    assert stored == expected
+
+
 def test_links_only_csv_parser_sqllite(tmpdir, db_info, use_database, engine):
     # file paths
     fixtures_dir = os.path.join(os.path.dirname(__file__), 'fixtures', 'csv_parser', 'linksonly_csv')

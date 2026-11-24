@@ -114,7 +114,12 @@ class AbstractCsvParser(abc.ABC):
         self.logger.info("reading csv - start")
         self.start_time = time()
         # schema: https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML1.2.0.xsd
-        self.csv_reader = pd.read_csv(self.csv_path)
+        # scanid is the spectrum's identifier in the source data (stored as spectrum_id): read it
+        # as text, exactly as written. Otherwise pandas makes a numeric column of it, and a
+        # column with empty cells becomes float, so 1001 would be stored as "1001.0".
+        header = pd.read_csv(self.csv_path, nrows=0).columns
+        text_cols = {c: str for c in header if c.lower().replace(" ", "") == "scanid"}
+        self.csv_reader = pd.read_csv(self.csv_path, dtype=text_cols)
 
         # check for duplicate columns
         col_list = self.csv_reader.columns.tolist()
