@@ -1,3 +1,4 @@
+import json
 import os
 import pytest
 from sqlalchemy import Table
@@ -308,3 +309,53 @@ def test_psql_mgf_mzid_parser(use_database, engine):
 
     engine.dispose()
 
+
+
+@pytest.mark.parametrize("pepseq, expected", [
+    ("PEPTIDE", ("PEPTIDE", [], [])),
+    ("PEPMoxTIDE", ("PEPMTIDE", [4], ["ox"])),
+    ("KCcmLRMox", ("KCLRM", [2, 5], ["cm", "ox"])),
+    ("acPEPTIDE", ("PEPTIDE", [0], ["ac"])),
+    ("acKbs3ohPEP", ("KPEP", [0, 1], ["ac", "bs3oh"])),
+    ("PEPM15.994915TIDE", ("PEPMTIDE", [4], ["15.994915"])),
+])
+def test_split_modifications(pepseq, expected):
+    from parser.csv_parser.FullCsvParser import split_modifications
+    assert split_modifications(pepseq) == expected
+
+
+def test_csv_modifications_stored_without_masses(tmpdir):
+    """Modifications written into PepSeq are taken out of the sequence and stored as unknown
+    modifications (MS:1001460, with their names) without a mass, to be asked for later."""
+    import sqlite3
+    from models.base import Base
+    fixtures_dir = os.path.join(os.path.dirname(__file__), 'fixtures', 'csv_parser',
+                                'nopeaklist_csv')
+    copyfile(os.path.join(fixtures_dir, 'polII-uniprot.fasta'),
+             os.path.join(str(tmpdir), 'polII-uniprot.fasta'))
+    csv = os.path.join(fixtures_dir, 'PolII_nopeaklist.csv')
+    conn_str = f"sqlite:///{os.path.join(str(tmpdir), 'test.db')}"
+    engine = create_engine(conn_str)
+    Base.metadata.create_all(engine)
+    engine.dispose()
+    id_parser = parse_no_peak_lists_csv_into_sqllite(csv, None, tmpdir, logger, None, engine)
+
+    con = sqlite3.connect(os.path.join(str(tmpdir), 'test.db'))
+    rows = con.execute("SELECT base_sequence, mod_accessions, mod_positions, "
+                       "mod_monoiso_mass_deltas FROM modifiedpeptide").fetchall()
+    con.close()
+    names = set()
+    n_modified = 0
+    for base, accs, positions, masses in rows:
+        accs, positions, masses = json.loads(accs), json.loads(positions), json.loads(masses)
+        assert base.isalpha() and base.isupper(), base
+        assert len(accs) == len(positions) == len(masses)
+        assert all(m is None for m in masses)
+        assert all(0 <= p <= len(base) for p in positions)
+        for a in accs:
+            assert list(a) == ["MS:1001460"]
+            names.add(a["MS:1001460"])
+        n_modified += bool(accs)
+    assert n_modified > 0
+    assert names == id_parser.unknown_mods
+    assert names <= {"cm", "ox", "bs3oh", "bs3nh2"}

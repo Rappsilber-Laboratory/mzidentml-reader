@@ -6,6 +6,28 @@ from time import time
 from .AbstractCsvParser import AbstractCsvParser, CsvParseException
 
 
+# PSI-MS "unknown modification": CSV files name modifications but don't give their masses
+UNKNOWN_MODIFICATION = "MS:1001460"
+_MOD_RE = re.compile(r"([A-Z]*)([^A-Z]+)")
+
+
+def split_modifications(pepseq):
+    """Split a CSV peptide sequence with modifications written into it (lower case after the
+    modified residue, e.g. "PEPMoxTIDE", or before the first residue for the N-terminus,
+    "acPEPTIDE") into the base sequence and the modifications.
+
+    :return: (base sequence, positions, names). Positions are 1-based (the modified residue),
+        0 for the N-terminus, as in modifiedpeptide.mod_positions.
+    """
+    positions, names = [], []
+    residues = 0
+    for m in _MOD_RE.finditer(pepseq):
+        residues += len(m.group(1))
+        positions.append(residues)
+        names.append(m.group(2))
+    return re.sub(r"[^A-Z]", "", pepseq), positions, names
+
+
 class FullCsvParser(AbstractCsvParser):
 
     @property
@@ -40,6 +62,22 @@ class FullCsvParser(AbstractCsvParser):
             "expmz",  # ToDo: required in mzid - also make required col?
             "calcmz",
         ]
+
+    def _peptide_modifications(self, pepseq, row_number):
+        """The modifiedpeptide columns for a CSV peptide sequence. The modifications get no
+        mass (None): CSV files only name them, so the masses are asked for after the upload
+        (the names are collected in self.unknown_mods)."""
+        base, positions, names = split_modifications(pepseq)
+        if not base:
+            raise CsvParseException(
+                "No amino acids in peptide sequence %s in row %s" % (pepseq, row_number))
+        self.unknown_mods.update(names)
+        return {
+            "base_sequence": base,
+            "mod_accessions": [{UNKNOWN_MODIFICATION: n} for n in names],
+            "mod_positions": positions,
+            "mod_monoiso_mass_deltas": [None] * len(names),
+        }
 
     def main_loop(self):
         main_loop_start_time = time()
@@ -414,10 +452,7 @@ class FullCsvParser(AbstractCsvParser):
                 peptide1 = {
                     "id": pep1_id,
                     "upload_id": self.writer.upload_id,
-                    "base_sequence": pepseq1,
-                    "mod_accessions": [],  # mod_accessions,
-                    "mod_positions": [],  # mod_pos,
-                    "mod_monoiso_mass_deltas": [],  # mod_masses,
+                    **self._peptide_modifications(pepseq1, row_number),
                     "link_site1": linkpos1,
                     "crosslinker_modmass": crosslink_mod_mass,
                     "crosslinker_pair_id": str(crosslinker_pair_id),
@@ -441,10 +476,7 @@ class FullCsvParser(AbstractCsvParser):
                     peptide2 = {
                         "id": pep2_id,
                         "upload_id": self.writer.upload_id,
-                        "base_sequence": pepseq2,
-                        "mod_accessions": [],  # mod_accessions,
-                        "mod_positions": [],  # mod_pos,
-                        "mod_monoiso_mass_deltas": [],  # mod_masses,
+                        **self._peptide_modifications(pepseq2, row_number),
                         "link_site1": linkpos2,
                         "crosslinker_modmass": 0,
                         "crosslinker_pair_id": str(crosslinker_pair_id),
@@ -533,19 +565,6 @@ class FullCsvParser(AbstractCsvParser):
             }
 
             spectrum_identifications.append(spectrum_identification)
-
-            #
-            # MODIFICATIONS
-            # ToDo: check against unimod?
-
-            try:
-                modifications = re.findall(
-                    "[^A-Z]+", "".join([pepseq1, pepseq2])
-                )
-            except AttributeError:
-                modifications = []
-
-            self.unknown_mods.update(modifications)
 
         # DBSEQUENCES
         # if self.fasta:
